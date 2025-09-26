@@ -1,0 +1,29 @@
+object RichEdit_Form: TRichEdit_Form
+  Left = 0
+  Top = 0
+  Caption = 'RichEdit_Form'
+  ClientHeight = 1255
+  ClientWidth = 1176
+  Color = clBtnFace
+  Font.Charset = DEFAULT_CHARSET
+  Font.Color = clWindowText
+  Font.Height = -12
+  Font.Name = 'Segoe UI'
+  Font.Style = []
+  TextHeight = 15
+  object RichEdit: TRichEdit
+    Left = 8
+    Top = 8
+    Width = 1160
+    Height = 1239
+    Font.Charset = ANSI_CHARSET
+    Font.Color = clWindowText
+    Font.Height = -12
+    Font.Name = 'Segoe UI'
+    Font.Style = []
+    Lines.Strings = (
+      'RichEdit')
+    ParentFont = False
+    TabOrder = 0
+  end
+end

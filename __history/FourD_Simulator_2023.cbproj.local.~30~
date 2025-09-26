@@ -1,0 +1,42 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<BorlandProject>
+	<Transactions>
+    <Transaction>2023/09/30 14:24:32.000.754,=C:\Users\pkuklik\Dropbox (Personal)\LAPTOP_DATA\Desktop\PROJECTS CENTRE\PROGRAMISTYCZNE\Project1PCH1.h</Transaction>
+    <Transaction>2023/09/30 14:24:32.000.792,=C:\Users\pkuklik\Dropbox (Personal)\LAPTOP_DATA\Desktop\PROJECTS CENTRE\PROGRAMISTYCZNE\Unit1.cpp</Transaction>
+    <Transaction>2023/09/30 14:25:02.000.439,C:\Users\pkuklik\Dropbox (Personal)\LAPTOP_DATA\Desktop\PROJECTS CENTRE\PROGRAMISTYCZNE\Unit1.cpp=C:\Users\pkuklik\Dropbox (Personal)\LAPTOP_DATA\Desktop\PROJECTS CENTRE\PROGRAMISTYCZNE\4D SIMULATOR\Unit1.cpp</Transaction>
+    <Transaction>2023/09/30 14:25:02.000.439,C:\Users\pkuklik\Dropbox (Personal)\LAPTOP_DATA\Desktop\PROJECTS CENTRE\PROGRAMISTYCZNE\Unit1.h=C:\Users\pkuklik\Dropbox (Personal)\LAPTOP_DATA\Desktop\PROJECTS CENTRE\PROGRAMISTYCZNE\4D SIMULATOR\Unit1.h</Transaction>
+    <Transaction>2023/09/30 14:25:02.000.483,C:\Users\pkuklik\Dropbox (Personal)\LAPTOP_DATA\Desktop\PROJECTS CENTRE\PROGRAMISTYCZNE\Project1.cbproj=C:\Users\pkuklik\Dropbox (Personal)\LAPTOP_DATA\Desktop\PROJECTS CENTRE\PROGRAMISTYCZNE\4D SIMULATOR\FourD_Simulator_2023.cbproj</Transaction>
+    <Transaction>2023/09/30 14:25:02.000.400,C:\Users\pkuklik\Dropbox (Personal)\LAPTOP_DATA\Desktop\PROJECTS CENTRE\PROGRAMISTYCZNE\Project1PCH1.h=C:\Users\pkuklik\Dropbox (Personal)\LAPTOP_DATA\Desktop\PROJECTS CENTRE\PROGRAMISTYCZNE\4D SIMULATOR\FourD_Simulator_2023PCH1.h</Transaction>
+    <Transaction>2023/09/30 14:25:02.000.439,C:\Users\pkuklik\Dropbox (Personal)\LAPTOP_DATA\Desktop\PROJECTS CENTRE\PROGRAMISTYCZNE\Unit1.dfm=C:\Users\pkuklik\Dropbox (Personal)\LAPTOP_DATA\Desktop\PROJECTS CENTRE\PROGRAMISTYCZNE\4D SIMULATOR\Unit1.dfm</Transaction>
+    <Transaction>2023/09/30 14:25:13.000.591,C:\Users\pkuklik\Dropbox (Personal)\LAPTOP_DATA\Desktop\PROJECTS CENTRE\PROGRAMISTYCZNE\4D SIMULATOR\FourD_Simulator_2023.cbproj=C:\Users\pkuklik\Dropbox (Personal)\LAPTOP_DATA\Desktop\PROJECTS CENTRE\PROGRAMISTYCZNE\4D SIMULATOR\FourD_Simulator_2023.cbproj</Transaction>
+    <Transaction>2023/09/30 14:26:49.000.375,=C:\Users\pkuklik\Dropbox (Personal)\LAPTOP_DATA\Desktop\PROJECTS CENTRE\PROGRAMISTYCZNE\4D SIMULATOR\OpenGL_Panel_Display_Parameters.cpp</Transaction>
+    <Transaction>2023/09/30 14:27:13.000.556,=C:\Users\pkuklik\Dropbox (Personal)\LAPTOP_DATA\Desktop\PROJECTS CENTRE\PROGRAMISTYCZNE\4D SIMULATOR\Forms\Ask_For_Single_Item_Form.cpp</Transaction>
+    <Transaction>2023/09/30 14:27:14.000.246,=C:\Users\pkuklik\Dropbox (Personal)\LAPTOP_DATA\Desktop\PROJECTS CENTRE\PROGRAMISTYCZNE\4D SIMULATOR\Forms\Display_Options_Form.cpp</Transaction>
+    <Transaction>2023/09/30 14:27:15.000.699,=C:\Users\pkuklik\Dropbox (Personal)\LAPTOP_DATA\Desktop\PROJECTS CENTRE\PROGRAMISTYCZNE\4D SIMULATOR\Forms\Progress_Bar_Form.cpp</Transaction>
+    <Transaction>2023/09/30 14:27:15.000.385,=C:\Users\pkuklik\Dropbox (Personal)\LAPTOP_DATA\Desktop\PROJECTS CENTRE\PROGRAMISTYCZNE\4D SIMULATOR\Forms\Options_Form_.cpp</Transaction>
+    <Transaction>2023/09/30 14:27:15.000.003,=C:\Users\pkuklik\Dropbox (Personal)\LAPTOP_DATA\Desktop\PROJECTS CENTRE\PROGRAMISTYCZNE\4D SIMULATOR\Forms\Main_Screen.cpp</Transaction>
+    <Transaction>2023/09/30 14:28:26.000.873,C:\Users\pkuklik\Dropbox (Personal)\LAPTOP_DATA\Desktop\PROJECTS CENTRE\PROGRAMISTYCZNE\4D SIMULATOR\Unit1.cpp=</Transaction>
+    <Transaction>2023/09/30 15:16:58.000.278,=C:\Users\pkuklik\Dropbox (Personal)\LAPTOP_DATA\Desktop\PROJECTS CENTRE\PROGRAMISTYCZNE\4D SIMULATOR\numerical_algorithms\FFTReal.cpp</Transaction>
+    <Transaction>2023/09/30 15:16:58.000.340,=C:\Users\pkuklik\Dropbox (Personal)\LAPTOP_DATA\Desktop\PROJECTS CENTRE\PROGRAMISTYCZNE\4D SIMULATOR\numerical_algorithms\Simulation_System_Class.cpp</Transaction>
+    <Transaction>2023/09/30 15:16:58.000.144,=C:\Users\pkuklik\Dropbox (Personal)\LAPTOP_DATA\Desktop\PROJECTS CENTRE\PROGRAMISTYCZNE\4D SIMULATOR\numerical_algorithms\ArcBall.cpp</Transaction>
+    <Transaction>2023/09/30 15:16:58.000.423,=C:\Users\pkuklik\Dropbox (Personal)\LAPTOP_DATA\Desktop\PROJECTS CENTRE\PROGRAMISTYCZNE\4D SIMULATOR\numerical_algorithms\Two_D_system_CR_region_class.cpp</Transaction>
+    <Transaction>2023/09/30 15:16:58.000.198,=C:\Users\pkuklik\Dropbox (Personal)\LAPTOP_DATA\Desktop\PROJECTS CENTRE\PROGRAMISTYCZNE\4D SIMULATOR\numerical_algorithms\CIsoSurface.cpp</Transaction>
+    <Transaction>2023/09/30 15:17:06.000.429,=C:\Users\pkuklik\Dropbox (Personal)\LAPTOP_DATA\Desktop\PROJECTS CENTRE\PROGRAMISTYCZNE\4D SIMULATOR\numerical_algorithms\Fenton-Karma model\FK3_2D_system.cpp</Transaction>
+    <Transaction>2023/09/30 15:17:13.000.045,=C:\Users\pkuklik\Dropbox (Personal)\LAPTOP_DATA\Desktop\PROJECTS CENTRE\PROGRAMISTYCZNE\4D SIMULATOR\numerical_algorithms\FHN model\FHN_2D_system.cpp</Transaction>
+    <Transaction>2023/09/30 15:17:13.000.125,=C:\Users\pkuklik\Dropbox (Personal)\LAPTOP_DATA\Desktop\PROJECTS CENTRE\PROGRAMISTYCZNE\4D SIMULATOR\numerical_algorithms\FHN model\FHN_3D_system.cpp</Transaction>
+    <Transaction>2023/09/30 15:17:13.000.206,=C:\Users\pkuklik\Dropbox (Personal)\LAPTOP_DATA\Desktop\PROJECTS CENTRE\PROGRAMISTYCZNE\4D SIMULATOR\numerical_algorithms\FHN model\FHN_4D_system.cpp</Transaction>
+    <Transaction>2023/09/30 15:17:21.000.662,=C:\Users\pkuklik\Dropbox (Personal)\LAPTOP_DATA\Desktop\PROJECTS CENTRE\PROGRAMISTYCZNE\4D SIMULATOR\numerical_algorithms\TP1A model\TP1A_3D_system.cpp</Transaction>
+    <Transaction>2023/09/30 15:17:21.000.494,=C:\Users\pkuklik\Dropbox (Personal)\LAPTOP_DATA\Desktop\PROJECTS CENTRE\PROGRAMISTYCZNE\4D SIMULATOR\numerical_algorithms\TP1A model\TP1A_2D_system.cpp</Transaction>
+    <Transaction>2023/09/30 15:17:21.000.590,=C:\Users\pkuklik\Dropbox (Personal)\LAPTOP_DATA\Desktop\PROJECTS CENTRE\PROGRAMISTYCZNE\4D SIMULATOR\numerical_algorithms\TP1A model\TP1A_2L_system.cpp</Transaction>
+    <Transaction>2023/09/30 15:32:56.000.029,=C:\Users\pkuklik\Dropbox (Personal)\LAPTOP_DATA\Desktop\PROJECTS CENTRE\PROGRAMISTYCZNE\4D SIMULATOR\numerical_algorithms\Numerical_Library.cpp</Transaction>
+    <Transaction>2023/09/30 15:45:43.000.787,=C:\Users\pkuklik\Dropbox (Personal)\LAPTOP_DATA\Desktop\PROJECTS CENTRE\PROGRAMISTYCZNE\4D SIMULATOR\Visualization\OpenglPanel.cpp</Transaction>
+    <Transaction>2023/09/30 15:45:43.000.850,=C:\Users\pkuklik\Dropbox (Personal)\LAPTOP_DATA\Desktop\PROJECTS CENTRE\PROGRAMISTYCZNE\4D SIMULATOR\Visualization\Signals_Display_Parameters_Class.cpp</Transaction>
+    <Transaction>2023/09/30 20:26:24.736,=C:\Users\pkuklik\Dropbox (Personal)\LAPTOP_DATA\Desktop\PROJECTS CENTRE\PROGRAMISTYCZNE\4D SIMULATOR\numerical_algorithms\ButterworthBandpass_Filter.cpp</Transaction>
+    <Transaction>2023/09/30 20:26:52.277,=C:\Users\pkuklik\Dropbox (Personal)\LAPTOP_DATA\Desktop\PROJECTS CENTRE\PROGRAMISTYCZNE\4D SIMULATOR\numerical_algorithms\vector_3d.cpp</Transaction>
+    <Transaction>2023/09/30 20:27:25.154,=C:\Users\pkuklik\Dropbox (Personal)\LAPTOP_DATA\Desktop\PROJECTS CENTRE\PROGRAMISTYCZNE\4D SIMULATOR\numerical_algorithms\Local_Activation.cpp</Transaction>
+    <Transaction>2023/10/02 09:47:05.725,=C:\Users\pkuklik\Dropbox (Personal)\LAPTOP_DATA\Desktop\PROJECTS CENTRE\PROGRAMISTYCZNE\4D SIMULATOR\numerical_algorithms\Matrix_2D.cpp</Transaction>
+    <Transaction>2023/10/02 09:47:05.777,=C:\Users\pkuklik\Dropbox (Personal)\LAPTOP_DATA\Desktop\PROJECTS CENTRE\PROGRAMISTYCZNE\4D SIMULATOR\numerical_algorithms\Matrix_3D.cpp</Transaction>
+    <Transaction>2023/10/02 09:47:05.855,=C:\Users\pkuklik\Dropbox (Personal)\LAPTOP_DATA\Desktop\PROJECTS CENTRE\PROGRAMISTYCZNE\4D SIMULATOR\numerical_algorithms\Matrix_3D_double.cpp</Transaction>
+    <Transaction>2023/10/02 09:51:48.491,=C:\Users\pkuklik\Dropbox (Personal)\LAPTOP_DATA\Desktop\PROJECTS CENTRE\PROGRAMISTYCZNE\4D SIMULATOR\numerical_algorithms\openglpicking\maths_funcs_for_ray_picking.cpp</Transaction>
+  </Transactions>
+</BorlandProject>

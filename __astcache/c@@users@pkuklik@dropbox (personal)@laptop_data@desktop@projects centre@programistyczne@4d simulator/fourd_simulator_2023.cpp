@@ -1,0 +1,45 @@
+//---------------------------------------------------------------------------
+
+#include <vcl.h>
+#pragma hdrstop
+#include <tchar.h>
+//---------------------------------------------------------------------------
+USEFORM("Forms\Progress_Bar_Form.cpp", Progress_Form);
+USEFORM("Forms\Ask_For_Single_Item_Form.cpp", Ask_For_Single_Item_Form1);
+USEFORM("Forms\Display_Options_Form.cpp", Display_Options_Form_1);
+USEFORM("Forms\Main_Screen.cpp", Main_Screen_Form);
+USEFORM("Forms\Options_Form_.cpp", Options_Form);
+USEFORM("Forms\Rich_Edit_Form.cpp", RichEdit_Form);
+//---------------------------------------------------------------------------
+int WINAPI _tWinMain(HINSTANCE, HINSTANCE, LPTSTR, int)
+{
+	try
+	{
+		Application->Initialize();
+		Application->MainFormOnTaskBar = true;
+		Application->CreateForm(__classid(TMain_Screen_Form), &Main_Screen_Form);
+		Application->CreateForm(__classid(TAsk_For_Single_Item_Form1), &Ask_For_Single_Item_Form1);
+		Application->CreateForm(__classid(TDisplay_Options_Form_1), &Display_Options_Form_1);
+		Application->CreateForm(__classid(TOptions_Form), &Options_Form);
+		Application->CreateForm(__classid(TProgress_Form), &Progress_Form);
+		Application->CreateForm(__classid(TRichEdit_Form), &RichEdit_Form);
+		Application->Run();
+	}
+	catch (Exception &exception)
+	{
+		Application->ShowException(&exception);
+	}
+	catch (...)
+	{
+		try
+		{
+			throw Exception("");
+		}
+		catch (Exception &exception)
+		{
+			Application->ShowException(&exception);
+		}
+	}
+	return 0;
+}
+//---------------------------------------------------------------------------

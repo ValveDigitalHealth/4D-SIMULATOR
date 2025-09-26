@@ -1,0 +1,1123 @@
+﻿#include "LR_91_2D_System.h"
+
+// Author: Pawel Kuklik
+//  XI.2004
+//************************************************************************
+
+LR_91_2D_system_class::LR_91_2D_system_class()
+{
+	Size_X = TWO_DIM_SYSTEM_X_SIZE;
+	Size_Y = TWO_DIM_SYSTEM_Y_SIZE;
+
+	Min_Voltage = -90;
+	Max_Voltage = 100;
+
+	dx = 0.02;
+    Tip_Timer = 3.0;
+	Pos_Size = 1000000;
+
+	Tip_Position = new int*[2];
+	for(int i=0;i<2;i++)
+		Tip_Position[i] = new int[Pos_Size];
+	tip_searching = false;
+	Tip_Counter = 0;
+
+	for(long i=0;i<Pos_Size;i++)
+	{
+		Tip_Position[0][i] = 0;
+		Tip_Position[1][i] = 0;
+	}
+
+	Max_Diff_X = 0.0001;
+	Max_Diff_Y = 0.0001;
+
+	load_phase_file();
+
+}
+//************************************************************************
+LR_91_2D_system_class::~LR_91_2D_system_class()
+{
+}
+//************************************************************************
+
+void LR_91_2D_system_class::load_phase_file()
+{
+	ifstream dfile( "LR91_phase.txt" );
+	double APDTref, k, r, fi, phase, d, x,y;
+	int n,i,j,counter, m;
+	char string[1024];
+
+	if( dfile == NULL )
+		ShowMessage("\n Error : can't open 'LR91_phase.txt' phase file." );
+
+	dfile >> string; // << "LR91_phase_file_v1";
+
+	dfile >> string; // "APD+Tref[ms]= " << phase_time << "\n";
+	dfile >> APDTref;
+
+	dfile >> string; //"size_of_phase_vector " << size_of_phase_vector << "\n";
+	dfile >> size_of_phase_vector;
+
+	Data = new double*[size_of_phase_vector];
+	for(i=0;i<size_of_phase_vector;i++)
+		Data[i] = new double[7];
+
+	// load data
+	for(i=0;i<size_of_phase_vector;i++)
+	{
+		dfile >> Data[i][0];
+		dfile >> Data[i][1];
+		dfile >> Data[i][2];
+		dfile >> Data[i][3];
+		dfile >> Data[i][4];
+		dfile >> Data[i][5];
+		dfile >> Data[i][6];
+	}
+
+}
+
+//************************************************************************
+
+void LR_91_2D_system_class::create_spiral(int Slice)
+{
+	double r,d,x,y,fi,k,Spiral_K=2,phase,n;
+    int m;
+
+	// 1st clear sample
+	clear_system();
+
+	//2nd
+	k = Size_X/(2.0*M_PI*Spiral_K);
+
+
+	for(long i=0; i<Size_X; i++ )
+	for(long j=0; j<Size_Y; j++ )
+	{
+		// distance from center of the sample in dx units
+		r = sqrt( pow(i-Size_X/2.0,2) +
+				  pow(j-Size_Y/2.0,2));
+
+        if( i-Size_X/2.0 != 0.0 )
+        {
+			x = (i-Size_X/2.0);
+            y = (j-Size_Y/2.0);
+			d = atan(fabs(y/x));
+
+            // 1st quarter
+            if( x > 0 && y > 0 )
+				fi = d;
+
+            // 2nd quarter
+            if( x < 0 && y > 0 )
+                fi = M_PI - d;
+
+            // 3rd quarter
+            if( x < 0 && y < 0 )
+                fi = M_PI + d;
+
+            // 4th quarter
+            if( x > 0 && y < 0 )
+                fi = 2.0*M_PI - d;
+        }
+        else
+		{
+			if(j-Size_Y/2.0 > 0.0 )
+                 fi = M_PI_2;
+            else
+                 fi = 3.0*M_PI_2;
+		}
+
+        // find the greatest n such that r > k*fi + 2pi*k*n
+        if(k*fi!=0)
+            n = floor( (r-k*fi)/(2.0*M_PI*k) );
+        else
+            n = 0;
+
+		phase = fabs(r-k*fi-2.0*k*M_PI*n)/(2.0*k*M_PI);
+
+		m = (int)((1.0-phase)*(size_of_phase_vector-2));
+
+		LR_Tissue[i][j].v = Data[m][0];
+		LR_Tissue[i][j].m = Data[m][1];
+		LR_Tissue[i][j].h = Data[m][2];
+		LR_Tissue[i][j].j = Data[m][3];
+		LR_Tissue[i][j].d = Data[m][4];
+		LR_Tissue[i][j].f = Data[m][5];
+		LR_Tissue[i][j].X = Data[m][6];
+	}
+}
+
+//************************************************************************
+
+void LR_91_2D_system_class::compute_N_steps(int steps_number)
+{
+	for(int i=0;i<steps_number;i++);
+		calculate_one_step();
+}
+
+//************************************************************************
+
+void LR_91_2D_system_class::calculate_one_step()
+{
+	dx2 = dx*dx;
+	long X = Size_X;
+	long Y = Size_Y;
+
+	//---------------------------------------------------------------------
+	if( Boundary_Conditions == 0 ) // zero flux
+	//---------------------------------------------------------------------
+	{
+	for(long i=1;i<X-1;i++)
+	for(long j=1;j<Y-1;j++)
+	{
+		// 1st compute diffusion term
+		LR_Tissue[i][j].Diffusion_Term =
+			DX[i][j]*
+			( LR_Tissue[i+1][j].v + LR_Tissue[i-1][j].v +
+			  LR_Tissue[i][j+1].v + LR_Tissue[i][j-1].v +
+			  LR_Tissue[i+1][j+1].v + LR_Tissue[i-1][j-1].v +
+			  LR_Tissue[i-1][j+1].v + LR_Tissue[i+1][j-1].v
+			  -8.0*LR_Tissue[i][j].v ) / dx2;
+		LR_Tissue[i][j].compute_one_step();
+	}
+	 //  zero flux boundary conditions
+	 for(long  i=1; i<Y-1; i++ )
+	 {
+		LR_Tissue[0][i].v = LR_Tissue[1][i].v;
+		LR_Tissue[X-1][i].v = LR_Tissue[X-2][i].v;
+	 }
+
+	 for(long  i=1; i<X-1; i++ )
+	 {
+		LR_Tissue[i][0].v = LR_Tissue[i][1].v;
+		LR_Tissue[i][Y-1].v = LR_Tissue[i][Y-2].v;
+	 }
+
+    // corners
+    LR_Tissue[0][0].v = LR_Tissue[1][1].v;
+    LR_Tissue[X-1][0].v = LR_Tissue[X-2][1].v;
+    LR_Tissue[0][Y-1].v = LR_Tissue[1][Y-1].v;
+    LR_Tissue[X-1][Y-1].v = LR_Tissue[X-2][Y-2].v;
+	} // zero flux boundary
+
+	//---------------------------------------------------------------------
+    if( Boundary_Conditions == 1 ) // periodic
+    //---------------------------------------------------------------------
+    {
+    for(long i=1;i<X-1;i++)
+    for(long j=1;j<Y-1;j++)
+    {
+        LR_Tissue[i][j].Diffusion_Term =
+			DX[i][j]*
+            ( LR_Tissue[i+1][j].v + LR_Tissue[i-1][j].v +
+              LR_Tissue[i][j+1].v + LR_Tissue[i][j-1].v +
+              LR_Tissue[i+1][j+1].v + LR_Tissue[i-1][j-1].v +
+              LR_Tissue[i-1][j+1].v + LR_Tissue[i+1][j-1].v
+              -8.0*LR_Tissue[i][j].v ) / dx2;
+    }
+     //  upper edge
+     for(long i=1; i<X-1; i++ )
+     {
+        LR_Tissue[i][0].Diffusion_Term =
+            LR_Tissue[i][0].Diffusion_Coefficient*
+            ( LR_Tissue[i+1][0].v + LR_Tissue[i-1][0].v +
+              LR_Tissue[i][1].v + LR_Tissue[i][Y-1].v +
+              LR_Tissue[i+1][1].v + LR_Tissue[i-1][Y-1].v +
+              LR_Tissue[i-1][1].v + LR_Tissue[i+1][Y-1].v
+              -8.0*LR_Tissue[i][0].v ) / dx2;
+     }
+
+     //  lower edge
+     for(long  i=1; i<X-1; i++ )
+	 {
+        LR_Tissue[i][Y-1].Diffusion_Term =
+            LR_Tissue[i][Y-1].Diffusion_Coefficient*
+            ( LR_Tissue[i+1][Y-1].v + LR_Tissue[i-1][Y-1].v +
+              LR_Tissue[i][0].v + LR_Tissue[i][Y-2].v +
+              LR_Tissue[i+1][0].v + LR_Tissue[i-1][Y-2].v +
+              LR_Tissue[i-1][0].v + LR_Tissue[i+1][Y-2].v
+              -8.0*LR_Tissue[i][Y-1].v ) / dx2;
+     }
+
+     //  left edge
+	 for(long  j=1; j<Y-1; j++ )
+     {
+        LR_Tissue[0][j].Diffusion_Term =
+            LR_Tissue[0][j].Diffusion_Coefficient*
+            ( LR_Tissue[1][j].v + LR_Tissue[X-1][j].v +
+              LR_Tissue[0][j+1].v + LR_Tissue[0][j-1].v +
+              LR_Tissue[1][j+1].v + LR_Tissue[X-1][j-1].v +
+              LR_Tissue[X-1][j+1].v + LR_Tissue[1][j-1].v
+              -8.0*LR_Tissue[0][j].v ) / dx2;
+     }
+
+     //  right edge
+     for(long  j=1; j<Y-1; j++ )
+     {
+        LR_Tissue[X-1][j].Diffusion_Term =
+            LR_Tissue[X-1][j].Diffusion_Coefficient*
+            ( LR_Tissue[0][j].v + LR_Tissue[X-2][j].v +
+              LR_Tissue[X-1][j+1].v + LR_Tissue[X-1][j-1].v +
+              LR_Tissue[0][j+1].v + LR_Tissue[X-2][j-1].v +
+              LR_Tissue[X-2][j+1].v + LR_Tissue[0][j-1].v
+              -8.0*LR_Tissue[X-1][j].v ) / dx2;
+     }
+
+     // corners
+     // LU
+     LR_Tissue[0][0].Diffusion_Term =
+			DX[0][0]*
+			( LR_Tissue[1][0].v + LR_Tissue[X-1][0].v +
+			  LR_Tissue[0][1].v + LR_Tissue[0][Y-1].v +
+			  -4.0*LR_Tissue[0][0].v ) / dx2;
+	 // RU
+	 LR_Tissue[X-1][0].Diffusion_Term =
+			DX[X-1][0]*
+			( LR_Tissue[X-2][0].v + LR_Tissue[1][0].v +
+			  LR_Tissue[X-1][1].v + LR_Tissue[X-1][Y-1].v +
+			  -4.0*LR_Tissue[X-1][0].v ) / dx2;
+	 // LL
+	 LR_Tissue[0][Y-1].Diffusion_Term =
+			DX[0][Y-1]*
+			( LR_Tissue[1][Y-1].v + LR_Tissue[X-1][Y-1].v +
+			  LR_Tissue[0][Y-2].v + LR_Tissue[0][1].v +
+			  -4.0*LR_Tissue[0][Y-1].v ) / dx2;
+	 // RL
+	 LR_Tissue[X-1][Y-1].Diffusion_Term =
+			DX[X-1][Y-1]*
+			( LR_Tissue[0][Y-1].v + LR_Tissue[X-2][Y-1].v +
+              LR_Tissue[X-1][Y-2].v + LR_Tissue[X-1][0].v +
+              -4.0*LR_Tissue[X-1][Y-1].v ) / dx2;
+    for(long i=0;i<X;i++)
+    for(long j=0;j<Y;j++)
+	LR_Tissue[i][j].compute_one_step();         // !!!! a inne krawedzie ????
+	} // periodic boundary
+
+    // tip searching
+    if( tip_searching == true )
+	if( LR_Tissue[15][15].t - LR_Tissue[15][15].Timer > Tip_Timer )
+		find_tip();
+
+	Global_Time += LR_Tissue[0][0].dt;
+}
+//------------------------------------------------------------------------------
+
+bool LR_91_2D_system_class::activity_present()
+{
+    bool present = false;
+	for(long i=1;i<Size_X-1;i++)
+	for(long j=1;j<Size_Y-1;j++)
+    if( LR_Tissue[i][j].v > -40 )
+    present = true;
+    return present;
+}
+//------------------------------------------------------------------------------
+void LR_91_2D_system_class::find_tip()
+{
+    double min_T;
+    min_T = 100000.0;
+    int tx,ty;
+    tx = -1;
+    ty = -1;
+    int i,j;
+	dx2 = dx*dx;
+
+	for(i=5;i<Size_X-5;i++)
+    for(j=5;j<Size_Y-5;j++)
+    {
+        // find contur 2ms ago
+      if( LR_Tissue[i-1][j].V_Tip_Timer_ms_ago < LR_Tissue[i][j].Tip_Threshold
+      &&  LR_Tissue[i+1][j].V_Tip_Timer_ms_ago > LR_Tissue[i][j].Tip_Threshold
+      ||
+          LR_Tissue[i-1][j].V_Tip_Timer_ms_ago > LR_Tissue[i][j].Tip_Threshold
+      &&  LR_Tissue[i+1][j].V_Tip_Timer_ms_ago < LR_Tissue[i][j].Tip_Threshold
+      ||
+          LR_Tissue[i][j-1].V_Tip_Timer_ms_ago < LR_Tissue[i][j].Tip_Threshold
+      &&  LR_Tissue[i][j+1].V_Tip_Timer_ms_ago > LR_Tissue[i][j].Tip_Threshold
+      ||
+          LR_Tissue[i][j-1].V_Tip_Timer_ms_ago > LR_Tissue[i][j].Tip_Threshold
+      &&  LR_Tissue[i][j+1].V_Tip_Timer_ms_ago < LR_Tissue[i][j].Tip_Threshold
+      )
+
+    // check if this point is also now a contour line
+      if( LR_Tissue[i-1][j].v < LR_Tissue[i][j].Tip_Threshold
+      &&  LR_Tissue[i+1][j].v > LR_Tissue[i][j].Tip_Threshold
+      ||
+          LR_Tissue[i-1][j].v > LR_Tissue[i][j].Tip_Threshold
+      &&  LR_Tissue[i+1][j].v < LR_Tissue[i][j].Tip_Threshold
+      ||
+          LR_Tissue[i][j-1].v < LR_Tissue[i][j].Tip_Threshold
+      &&  LR_Tissue[i][j+1].v > LR_Tissue[i][j].Tip_Threshold
+      ||
+          LR_Tissue[i][j-1].v > LR_Tissue[i][j].Tip_Threshold
+      &&  LR_Tissue[i][j+1].v < LR_Tissue[i][j].Tip_Threshold
+      )
+      {
+
+      LR_Tissue[i][j].Tip_Function = fabs( LR_Tissue[i][j].v
+                                         - LR_Tissue[i][j].V_Tip_Timer_ms_ago);
+
+      if(LR_Tissue[i][j].Tip_Function < min_T)
+      {
+        tx = i;
+		ty = j;
+        min_T = LR_Tissue[i][j].Tip_Function;
+      }
+      } // if contours intersect
+    // update variables
+    LR_Tissue[i][j].V_Tip_Timer_ms_ago = LR_Tissue[i][j].v;
+    LR_Tissue[i][j].Timer = LR_Tissue[i][j].t;
+
+    } // for i,j
+    if( tx >= 0 && ty >= 0 )
+    {
+        LR_Tissue[tx][ty].Tip_Was_Here = 1;
+        Tip_Position[0][Tip_Counter] = tx;
+        Tip_Position[1][Tip_Counter] = ty;
+        Tip_Counter++;
+    }
+}
+//-------------------------------------------------------------------
+int LR_91_2D_system_class::save_object(ofstream* dfile)
+{
+    dfile[0] << "version_1" << endl;
+	dfile[0] << Size_X << " " << Size_Y << endl;
+	for(long x=0;x<Size_X;x++)
+	for(long y=0;y<Size_Y;y++)
+    LR_Tissue[x][y].save_object(dfile);
+}
+//-------------------------------------------------------------------
+int LR_91_2D_system_class::load_object(ifstream* dfile)
+{
+	char string[2000];
+	long X,Y;
+	dfile[0] >> string;
+	if( !strcmp(string,"version_1") )
+	{
+	dfile[0] >> X;
+	dfile[0] >> Y;
+	if( X != Size_X || Y != Size_Y )
+	return -3;
+	for(long x=0;x<Size_X;x++)
+	for(long y=0;y<Size_Y;y++)
+	LR_Tissue[x][y].load_object(dfile);
+	return 1;
+	} // version_1
+}
+//-------------------------------------------------------------------
+
+int LR_91_2D_system_class::compute_ISIs(long Node_Ptr_X, long Node_Ptr_Y)
+{
+	ISIs_Node_Ptr_X = Node_Ptr_X;
+	ISIs_Node_Ptr_Y = Node_Ptr_Y;
+	ISIs.clear();
+	double Threshold = -20;
+	double prev=0,curr=0;
+	if( Node_Ptr_X >= 0 && Node_Ptr_X < Size_X )
+	if( Node_Ptr_Y >= 0 && Node_Ptr_Y < Size_Y )
+	for(long t=1;t<LR_Tissue[Node_Ptr_X][Node_Ptr_Y].Voltage_History.size()-1;t++)
+	if( LR_Tissue[Node_Ptr_X][Node_Ptr_Y].Voltage_History[t-1] < Threshold )
+	if( LR_Tissue[Node_Ptr_X][Node_Ptr_Y].Voltage_History[t+1] > Threshold )
+	{
+		curr = t;
+		if( prev != 0 )
+			ISIs.push_back(curr-prev);
+		prev = curr;
+		t+=5;
+	}
+}
+//-------------------------------------------------------------------
+
+void LR_91_2D_system_class::compute_min_max_custom_value()
+{
+	Min_Custom_Value = 100000000;
+	Max_Custom_Value = -100000000;
+
+	for( int i=0; i<Size_X; i++)
+	for( int j=0; j<Size_Y; j++)
+	{
+		if( CUSTOM_VALUE[i][j] < Min_Custom_Value ) Min_Custom_Value = CUSTOM_VALUE[i][j];
+		if( CUSTOM_VALUE[i][j] > Max_Custom_Value ) Max_Custom_Value = CUSTOM_VALUE[i][j];
+	}
+
+}
+
+//------------------------------------------------------------------------------
+
+double LR_91_2D_system_class::get_custom_value(double Cx, double Cy)
+{
+	int X = Cx*Size_X;
+	int Y = Cy*Size_Y;
+	if( X>=0 && X < Size_X && Y>=0 && Y < Size_Y )
+	return CUSTOM_VALUE[X][Y];
+	else
+	return 0;
+}
+//-------------------------------------------------------------------
+
+void LR_91_2D_system_class::get_voltage(int x_coord, int y_coord,long t_ptr,double *Voltage,double *Time)
+{
+	Time[0] = 0;
+	Voltage[0] = 0;
+
+	if( t_ptr > 0 && t_ptr < VOLTAGE_HISTORY_Time_Axis_ms.size() )
+	Time[0] = VOLTAGE_HISTORY_Time_Axis_ms[t_ptr];
+
+	if( x_coord > 0 && x_coord < TWO_DIM_SYSTEM_X_SIZE &&
+		y_coord > 0 && y_coord < TWO_DIM_SYSTEM_Y_SIZE )
+	if( t_ptr > 0 && t_ptr < VOLTAGE_HISTORY[x_coord][y_coord].DVector.size() )
+	Voltage[0] = VOLTAGE_HISTORY[x_coord][y_coord].DVector[t_ptr];
+}
+
+//---------------------------------------------------------------------------
+
+double LR_91_2D_system_class::get_voltage(int X, int Y)
+{
+	return LR_Tissue[X][Y].v;
+}
+
+//------------------------------------------------------------------------------
+
+double LR_91_2D_system_class::get_current(int X, int Y)
+{
+	return LR_Tissue[X][Y].get_current();
+}
+
+//------------------------------------------------------------------------------
+
+void LR_91_2D_system_class::clear_signals_history()
+{
+	for( int i=0; i<Size_X; i++)
+	for( int j=0; j<Size_Y; j++)
+		VOLTAGE_HISTORY[i][j].DVector.clear();
+
+	VOLTAGE_HISTORY_Time_Axis_ms.clear();
+}
+
+//---------------------------------------------------------------------------
+
+void LR_91_2D_system_class::record_potentials(int Type,int Grid_Spacing)
+{
+//	for(long x=0;x<X;x++)
+//	LR_Tissue[x][0].Voltage_History.push_back(LR_Tissue[x][0].v);
+
+	double v;
+
+	for( int i=1; i<Size_X; i+=Grid_Spacing)
+	for( int j=1; j<Size_Y; j+=Grid_Spacing)
+	{
+		if( Type == 0 )
+		v = LR_Tissue[i][j].v;
+
+		if( Type == 1 )
+		v = get_unipolar_voltage(i,j);
+
+		if( Type == 2 )
+		v = 100*(get_unipolar_voltage(i,j) - get_unipolar_voltage(i,j-Grid_Spacing));
+
+		VOLTAGE_HISTORY[i][j].DVector.push_back(v);
+	}
+
+	VOLTAGE_HISTORY_Time_Axis_ms.push_back(Global_Time);
+}
+
+//---------------------------------------------------------------------------
+
+double LR_91_2D_system_class::get_unipolar_voltage(int x_coord, int y_coord)
+{
+	double r,x,y,z,v=0;
+	int Grid_Sampling=2;
+	int Range = 20;
+
+	for(int i=x_coord-Range; i<(signed)x_coord+Range; i+=Grid_Sampling)
+	for(int j=y_coord-Range; j<(signed)y_coord+Range; j+=Grid_Sampling)
+	if( i>0 && i<Size_X-1 )
+	if( j>0 && j<Size_Y-1 )
+	{
+
+	x =  i - x_coord;
+	y =  j - y_coord;
+
+	r = std::pow( std::pow(x,2)+std::pow(y,2),1.5);
+
+	if( r!=0 )
+	v =
+	 (
+	 ( LR_Tissue[i+1][j].v-   LR_Tissue[i-1][j].v )*(i - x_coord) +
+	 ( LR_Tissue[i][j+1].v- LR_Tissue[i][j-1].v )*(j - y_coord)
+	  ) / r;
+
+	} // for all nodes
+
+	return v;
+}
+
+//---------------------------------------------------------------------------
+
+void LR_91_2D_system_class::set_initial_coupling()
+{
+	for( int i=0; i<Size_X; i++)
+	for( int j=0; j<Size_Y; j++)
+	{
+		DX[i][j] = Max_Diff_X;
+		DY[i][j] = Max_Diff_Y;
+	}
+}
+
+//---------------------------------------------------------------------------
+
+void LR_91_2D_system_class::clear_system()
+{
+	// Clear grid
+	for( int i=0; i<Size_X; i++)
+	for( int j=0; j<Size_Y; j++)
+	{
+		LR_Tissue[i][j].initialize_variables();
+		CUSTOM_VALUE[i][j] = 0;
+		VOLTAGE_HISTORY[i][j].DVector.clear();
+	}
+
+	VOLTAGE_HISTORY_Time_Axis_ms.clear();
+}
+
+//---------------------------------------------------------------------------
+
+int LR_91_2D_system_class::get_color_code(int Source,int X,int Y,long t)
+{
+	int ptr=0;
+
+	if( Source == 0 && Max_Voltage-Min_Voltage != 0 )
+	ptr = 255*(LR_Tissue[X][Y].v-Min_Voltage)/(Max_Voltage-Min_Voltage);
+
+	if( Source == 0 && DX[X][Y] <= Min_Voltage && DY[X][Y] <= 0.1 )
+	ptr = -1;
+
+	if( Source == 1 )
+	ptr = 255-255*(DX[X][Y]-Min_Diff)/(2*Max_Diff_X-Min_Diff);
+
+	if( Source == 2 )
+	ptr = 255-255*(DY[X][Y]-Min_Diff)/(2*Max_Diff_Y-Min_Diff);
+
+	double max_mi=0.4,min_mi=0;
+
+/*
+	if( Source == 3 )
+	ptr = 255-255*(MI1[X][Y]-min_mi)/(max_mi-min_mi);
+	if( Source == 4 )
+	ptr = 255-255*(MI2[X][Y]-min_mi)/(max_mi-min_mi);
+*/
+	if( Source == 5 )
+	if( Max_Custom_Value-Min_Custom_Value != 0 )
+	ptr = 255-255*(CUSTOM_VALUE[X][Y]-Min_Custom_Value)/(Max_Custom_Value-Min_Custom_Value);
+	else
+	ptr = 0;
+
+	if( Source == 5 && DY[X][Y] <= 0.1 )
+	ptr = -1;
+
+	if( Source == 6 ) // between layers coupling (here not applicable)
+	ptr = 0;
+
+	if( Source == 7 )
+	if( t >= 0 && t < VOLTAGE_HISTORY[X][Y].DVector.size() )
+	ptr = 255*(VOLTAGE_HISTORY[X][Y].DVector[t] -Min_Voltage)/(Max_Voltage-Min_Voltage);
+
+	if (ptr > 255) ptr = 255;
+	return ptr;
+}
+
+//---------------------------------------------------------------------------
+
+void LR_91_2D_system_class::stimulate_system(double Cx, double Cy)
+{
+	int Radius=5;
+	int Pos_X = Cx*Size_X;
+	int Pos_Y = Cy*Size_Y;
+
+	for(int x=Pos_X-Radius;x<=Pos_X+Radius;x++)
+	for(int y=Pos_Y-Radius;y<=Pos_Y+Radius;y++)
+	stimulate_node(x,y);
+}
+
+//---------------------------------------------------------------------------
+
+void LR_91_2D_system_class::stimulate_node(int X,int Y)
+{
+	if( X >= 0 && X < TWO_DIM_SYSTEM_X_SIZE )
+	if( Y >= 0 && Y < TWO_DIM_SYSTEM_Y_SIZE )
+	{
+		LR_Tissue[X][Y].v = 10;
+		LR_Tissue[X][Y].vnew = 10;
+	}
+}
+
+//---------------------------------------------------------------------------
+
+void LR_91_2D_system_class::stimulate_edge(int Which)
+{
+	if( Which == 1 )
+	for(int x=1;x<Size_X-1;x++)
+	for(int y=1;y<=5;y++)
+		stimulate_node(x,y);
+
+	if( Which == 2 )
+	for(int x=1;x<Size_X-1;x++)
+	for(int y=Size_Y-5;y<Size_Y;y++)
+		stimulate_node(x,y);
+
+}
+
+//---------------------------------------------------------------------------
+
+void LR_91_2D_system_class::add_coupling(int Version,bool Add_Rings)
+{
+	//------------------------------
+	// discs
+	//------------------------------
+	if( Version == 1 )
+	{
+	int Curr_No = 0;
+	while( Curr_No < Diff_v1_Number )
+	{
+
+	Curr_No++;
+	int x = random( Size_X );
+	int y = random( Size_Y );
+
+	for( int i1=x-Diff_v1_Radius; i1<x+Diff_v1_Radius; i1++)
+	for( int j1=y-Diff_v1_Radius; j1<y+Diff_v1_Radius; j1++)
+	if( sqrt(pow(i1-x,2)+pow(j1-y,2)) < Diff_v1_Radius )
+	if( i1 >= 0 && i1 < Size_X )
+	if( j1 >= 0 && j1 < Size_Y )
+	{
+		DX[i1][j1] = 0;
+		DY[i1][j1] = 0;
+	}
+
+	if(Add_Rings)
+	for( int i1=x-Diff_v1_Radius-Ring_v1_Width; i1<x+Diff_v1_Radius+Ring_v1_Width; i1++)
+	for( int j1=y-Diff_v1_Radius-Ring_v1_Width; j1<y+Diff_v1_Radius+Ring_v1_Width; j1++)
+	if( sqrt(pow(i1-x,2)+pow(j1-y,2)) > Diff_v1_Radius )
+	if( sqrt(pow(i1-x,2)+pow(j1-y,2)) < Diff_v1_Radius+Ring_v1_Width )
+	if( i1 >= 0 && i1 < Size_X )
+	if( j1 >= 0 && j1 < Size_Y )
+	{
+		DX[i1][j1] = (1.+Ring_v1_PercD/100.)*Max_Diff_X;
+		DY[i1][j1] = (1.+Ring_v1_PercD/100.)*Max_Diff_Y;
+	}
+
+	}
+
+
+	} // discs
+
+	//------------------------------
+	// lines
+	//------------------------------
+	if( Version == 2 )
+	{
+
+	for(long k=0;k<Lines_No_v1;k++)
+	for(long ypos=Size_X*(100-Line_Perc_Leng_v1)*0.01*0.5;
+			 ypos<Size_X-Size_X*(100-Line_Perc_Leng_v1)*0.01*0.5;
+			 ypos++)
+	{
+		int xpos = (k+1)*Size_Y/Lines_No_v1;
+
+		if( xpos > 0 && xpos < Size_X )
+		if( ypos > 0 && ypos < Size_Y )
+		{
+			DX[xpos][ypos] = Line_Perc_D/100.*Max_Diff_X;
+			DY[xpos][ypos] = Line_Perc_D/100.*Max_Diff_Y;
+		}
+	}
+
+	} // discs
+
+	//------------------------------
+	// central disk
+	//------------------------------
+	if( Version == 3 )
+	{
+
+	for( int i1=Size_X/2-Disk_Radius; i1<Size_X/2+Disk_Radius; i1++)
+	for( int j1=Size_Y/2-Disk_Radius; j1<Size_Y/2+Disk_Radius; j1++)
+	if( sqrt(pow(i1-Size_X/2,2)+pow(j1-Size_Y/2,2)) < Disk_Radius )
+	if( i1 >= 0 && i1 < Size_X )
+	if( j1 >= 0 && j1 < Size_Y )
+	{
+		DX[i1][j1] = 0;
+		DY[i1][j1] = 0;
+	}
+
+	} //  central disk
+
+}
+
+//---------------------------------------------------------------------------
+
+void LR_91_2D_system_class::allocate_tables()
+{
+	1;
+}
+
+//---------------------------------------------------------------------------
+
+void LR_91_2D_system_class::refresh_VW_matrices()
+{
+	1;
+}
+
+//---------------------------------------------------------------------------
+
+vector <double> LR_91_2D_system_class::calculate_unipolar_voltage_from_surface(int Node_x,long Node_y, long Range)
+{
+	vector <double> unipolar_voltage;
+	double voltage,v,x,y,r;
+
+	for(long t=0;t<VOLTAGE_HISTORY[0][0].DVector.size()-1;t++)
+	{
+
+	voltage=0;
+	for(int i=Node_x-Range;i<(signed)(Node_x+Range);i++)
+	for(int j=Node_y-Range;j<(signed)(Node_y+Range);j++)
+	if( i > 0 && i < Size_X-1 )
+	if( j > 0 && j < Size_Y-1 )
+/// comment out below line if repolarization wave is to be removed from electrogram
+	if( VOLTAGE_HISTORY[i][j].DVector[t+1]-VOLTAGE_HISTORY[i][j].DVector[t] > 0 )
+	{
+
+	v = VOLTAGE_HISTORY[i][j].DVector[t];
+	x =  i - Node_x;
+	y =  j - Node_y;
+	r = std::pow( std::pow(x,2)+std::pow(y,2),1.5);
+
+	if( r >= 2 )
+	voltage +=
+	 (  (VOLTAGE_HISTORY[i+1][j].DVector[t]-
+		 VOLTAGE_HISTORY[i-1][j].DVector[t] )*x
+		+
+
+		(VOLTAGE_HISTORY[i][j+1].DVector[t]-
+		 VOLTAGE_HISTORY[i][j-1].DVector[t] )*y
+	 ) / r;
+
+	} // for all nodes
+
+	unipolar_voltage.push_back(voltage);
+
+	} // through time
+
+	return unipolar_voltage;
+}
+
+//---------------------------------------------------------------------------
+
+void LR_91_2D_system_class::export_voltage_history(AnsiString Filename,AnsiString Signal_Type)
+{
+	long Signal_Length = VOLTAGE_HISTORY[0][0].DVector.size();
+	double Spatial_Sampling = 2;
+
+	AnsiString FF = Filename + " " + FloatToStr(TWO_DIM_SYSTEM_X_SIZE/Spatial_Sampling) + "x"+ FloatToStr(TWO_DIM_SYSTEM_Y_SIZE/Spatial_Sampling)+"x"+ FloatToStr(Signal_Length) + ".csv";
+	ofstream df(FF.c_str());
+
+	// write size of the 3D matrix
+	if( Signal_Type == "voltage variable" )
+	{
+		for(int x=0;x<(double)TWO_DIM_SYSTEM_X_SIZE;x+=Spatial_Sampling)
+		for(int y=0;y<(double)TWO_DIM_SYSTEM_Y_SIZE;y+=Spatial_Sampling)
+		for(int t=0;t<Signal_Length;t++)
+		{
+			df << (double)((int)(VOLTAGE_HISTORY[x][y].DVector[t]*100))/100 << ",";
+		}
+	}
+
+	df.close();
+}
+
+//-------------------------------------------------------------------
+
+long LR_91_2D_system_class::get_history_vector_size()
+{
+	return VOLTAGE_HISTORY_Time_Axis_ms.size();
+}
+//-------------------------------------------------------------------
+
+long LR_91_2D_system_class::get_voltage_history_vector_size(int X,int Y)
+{
+	long S;
+
+	if(X>=0 && X<Size_X && Y >=0 && Y < Size_Y)
+	return VOLTAGE_HISTORY[X][Y].DVector.size();
+
+}
+//-------------------------------------------------------------------
+
+void LR_91_2D_system_class::ablate_system_xy_point(int X,int Y)
+{
+	DX[X][Y]=0;
+	DY[X][Y]=0;
+}
+
+//---------------------------------------------------------------------------
+
+void LR_91_2D_system_class::ablate_system(double Cx, double Cy)
+{
+	int Radius=4;
+	int Pos_X = Cx*Size_X;
+	int Pos_Y = Cy*Size_Y;
+	double r;
+
+	for(int x=Pos_X-Radius;x<=Pos_X+Radius;x++)
+	for(int y=Pos_Y-Radius;y<=Pos_Y+Radius;y++)
+	if(x>=0 && y>=0 && x<Size_X && y<Size_Y)
+	{
+		r = sqrt( pow(x-Pos_X,2) + pow(y-Pos_Y,2) );
+		if( r < Radius )
+		{
+			DX[x][y]=0;
+			DY[x][y]=0;
+		}
+	}
+}
+
+//------------------------------------------------------------------------------
+
+void LR_91_2D_system_class::compute_ISIs_XY(int X, int Y)
+{
+/*
+	ISIs.clear();
+	Activations_Positions.clear();
+	double Threshold = 0.5;
+	double prev=0,curr=0;
+	if( X >= 0 && X < Size_X )
+	if( Y >= 0 && Y < Size_Y )
+	for(long t=1;t<(signed)VOLTAGE_HISTORY[X][Y].DVector.size()-1;t++)
+	if( VOLTAGE_HISTORY[X][Y].DVector[t-1] < Threshold )
+	if( VOLTAGE_HISTORY[X][Y].DVector[t+1] > Threshold )
+	{
+		curr = t;
+		Activations_Positions.push_back(curr);
+		if( prev != 0 )
+			ISIs.push_back(curr-prev);
+		prev = curr;
+		t+=5; // forward jump in time
+	}
+*/
+}
+
+//---------------------------------------------------------------------------
+
+bool LR_91_2D_system_class::activity_present_check()
+{
+	bool Activity_Present = false;
+	double Threshold = 0.5;
+
+	for( int i=1; i<Size_X-1; i++)
+	for( int j=1; j<Size_Y-1; j++)
+	if( LR_Tissue[i][j].v > Threshold )
+		Activity_Present = true;
+
+	return Activity_Present;
+}
+
+//------------------------------------------------------------------------------
+
+void LR_91_2D_system_class::add_non_conducting_disk(int X,int Y,int Z,int R)
+{
+	double r;
+
+	for(int x=X-R;x<=X+R;x++)
+	for(int y=Y-R;y<=Y+R;y++)
+	if(x>=0 && y>=0 && x<Size_X && y<Size_Y)
+	{
+		r = sqrt( pow(x-X,2) + pow(y-Y,2) );
+		if( 1) // r <= R )
+		{
+				DX[x][y]=0;
+				DY[x][y]=0;
+		}
+	}
+}
+
+//------------------------------------------------------------------------------
+
+void LR_91_2D_system_class::add_mi1_mi2_R_disk(double mi1,double mi2,double R, int Target_Variable)
+{
+/*
+	// mi1 inner disk area
+	// mi2 outer disk area
+	if( Target_Variable == 0 )
+		set_initial_coupling();
+	else
+	for( int i=0; i<Size_X; i++)
+	for( int j=0; j<Size_Y; j++)
+	{
+		if( Target_Variable == 1 ) 	MI1[i][j] = mi2;
+		if( Target_Variable == 2 ) 	MI2[i][j] = mi2;
+	}
+
+	double r;
+	int X = 0.5*Size_X;
+	int Y = 0.5*Size_Y;
+
+	for(int x=X-R;x<=X+R;x++)
+	for(int y=Y-R;y<=Y+R;y++)
+	if(x>=0 && y>=0 && x<Size_X && y<Size_Y)
+	{
+		r = sqrt( pow(x-X,2) + pow(y-Y,2) );
+		if( r <= R )
+		{
+			if( Target_Variable == 0 ) 	{ DX[x][y] = mi1; DY[x][y] = mi1; }
+			if( Target_Variable == 1 ) 	MI1[x][y] = mi1;
+			if( Target_Variable == 2 ) 	MI2[x][y] = mi1;
+		}
+	}
+*/
+}
+//-------------------------------------------------------------------
+
+void LR_91_2D_system_class::clear_grid_egms()
+{
+	Grid_Electrograms.clear();
+}
+
+//-------------------------------------------------------------------
+
+void LR_91_2D_system_class::add_grid_egm(Electrogram *E)
+{
+	Grid_Electrograms.push_back(E[0]);
+}
+//-------------------------------------------------------------------
+
+double LR_91_2D_system_class::get_correlation_length(
+		long Start_Ptr,long Stop_Ptr, long BCL_Ptr,
+		double* CL, double* MPC,std::vector<double> *MPCs,std::vector<double> *Distances)
+{
+	if( Start_Ptr >= 0 && Start_Ptr < VOLTAGE_HISTORY_Time_Axis_ms.size() &&
+		Stop_Ptr >= 0 &&  Stop_Ptr  < VOLTAGE_HISTORY_Time_Axis_ms.size() &&
+		VOLTAGE_HISTORY_Time_Axis_ms.size() > 50 )
+	{
+
+	double dist,mpc,Min, Max;
+	double ts = VOLTAGE_HISTORY_Time_Axis_ms[2]-VOLTAGE_HISTORY_Time_Axis_ms[1];
+	double slope_Pearson, intercept_Pearson, Correlation_Length_Pearson=0;
+	double slope_MPC,intercept_MPC,Correlation_Length_MPC=0;
+	long Min_Ptr, Max_Ptr;
+	std::vector<double> Correlation_Vector,logCorr;
+	std::vector <double> Data_Vec1,Data_Vec2;
+	bool Take_80_Perc_Flag = true; // for MPC calcuations
+	int Electrogram_Type = 2; // transmembrane voltage
+	int Delay = 0;
+
+	if( ts != 0 )
+	{
+
+	double Corr_Step_Size = 2; // parameter used in calculating cross-correlation
+	double Corr_Steps_Number = 1.0 / Corr_Step_Size * 90.0/ts; // parameter used in calculating cross-correlation
+
+	// if Phase vector is empty, calcualte phases for all egms AND filtered egm for classic correlation
+	std::vector <double> S1;
+	if( Grid_Electrograms[0].Phase.size() == 0 )
+	{
+
+	for(long d1=0;d1<(signed)Grid_Electrograms.size();d1++)
+	{
+		// phase
+		//S1 = Numerical_Library_Obj.recompose_signal( &Grid_Electrograms[d1].Egm,BCL_Ptr,Electrogram_Type);
+	   // Grid_Electrograms[d1].Phase = Numerical_Library_Obj.get_Hilbert_phase_using_convolution_double(&S1,ts);
+
+	   Grid_Electrograms[d1].Phase = Numerical_Library_Obj.get_electrogram_phase(
+			&Grid_Electrograms[d1].Egm,Electrogram_Type,BCL_Ptr,ts);
+	}
+
+	Corrs.clear();
+	MPCs[0].clear();
+	Distances[0].clear();
+
+	//---------------------------------------------------------------
+	for(long d1=0;d1<(signed)Grid_Electrograms.size();d1++)
+	for(long d2=0;d2<(signed)Grid_Electrograms.size();d2++)
+	if( d1<d2 )
+	//---------------------------------------------------------------
+	{
+		dist = std::sqrt(std::pow(Grid_Electrograms[d1].x - Grid_Electrograms[d2].x,2 ) +
+						 std::pow(Grid_Electrograms[d1].y - Grid_Electrograms[d2].y,2 ) +
+						 std::pow(Grid_Electrograms[d1].z - Grid_Electrograms[d2].z,2 ) );
+
+		Distances[0].push_back(dist);
+
+		// get MPC in current window
+		Data_Vec1.clear();
+		Data_Vec2.clear();
+		Data_Vec1.assign(Grid_Electrograms[d1].Phase.begin() + Start_Ptr, Grid_Electrograms[d1].Phase.begin() + Stop_Ptr);
+		Data_Vec2.assign(Grid_Electrograms[d2].Phase.begin() + Start_Ptr, Grid_Electrograms[d2].Phase.begin() + Stop_Ptr);
+		mpc = Numerical_Library_Obj.get_phase_synchronization(&Data_Vec1,&Data_Vec2,1,1,Take_80_Perc_Flag,Delay);
+		MPCs[0].push_back(mpc);
+/*
+		// get Pearson Correlation in current window
+		Data_Vec1.clear();
+		Data_Vec2.clear();
+		Data_Vec1.assign(Grid_Electrograms[d1].Egm.begin() + Start_Ptr, Grid_Electrograms[d1].Egm.begin() + Stop_Ptr);
+		Data_Vec2.assign(Grid_Electrograms[d2].Egm.begin() + Start_Ptr, Grid_Electrograms[d2].Egm.begin() + Stop_Ptr);
+		Correlation_Vector = Numerical_Library_Obj.get_correlation_vector_custom_range(&Data_Vec1,&Data_Vec2, Corr_Steps_Number, Corr_Step_Size);
+		Numerical_Library_Obj.find_min_max(&Correlation_Vector,&Min, &Max, &Min_Ptr, &Max_Ptr);
+		Corrs.push_back(Max);
+*/
+	}
+
+	MPC[0] = Numerical_Library_Obj.get_average_from_vector(MPCs);
+
+	// fit linear log curve: MPC
+	logCorr.clear();
+	for(long k=0;k<MPCs[0].size();k++)
+	if( MPCs[0][k] > 0 )
+	logCorr.push_back( std::log(MPCs[0][k]) );
+	else
+	logCorr.push_back(0);
+
+	Numerical_Library_Obj.fitLine(Distances, &logCorr, &slope_MPC, &intercept_MPC);
+
+	if( slope_MPC != 0 )
+	Correlation_Length_MPC = -1.0/slope_MPC;
+	else
+	Correlation_Length_MPC = 0;
+
+	CL[0] = Correlation_Length_MPC;
+
+
+/*
+	// fit linear log curve: Pearson
+	logCorr.clear();
+	for(long k=0;k<Corrs.size();k++)
+	if( Corrs[k] > 0 )
+	logCorr.push_back( std::log(Corrs[k]) );
+	else
+	logCorr.push_back(0);
+
+	Numerical_Library_Obj.fitLine(&Distances, &logCorr, &slope_Pearson, &intercept_Pearson);
+
+	if( slope_Pearson != 0 )
+	Correlation_Length_Pearson = -1.0/slope_Pearson;
+	else
+	Correlation_Length_Pearson = 0;
+
+	// !!!!!!!!!!!!!!!! I dont know why, sometimes its in millions. I guess it's becasue of
+	// lack of dependency on distance + random effect
+	if( fabs(Correlation_Length_Pearson)>1000 )
+	Correlation_Length_Pearson = 0;
+
+	return Correlation_Length_Pearson;
+*/
+
+
+	} // if ts != 0
+	else
+	ShowMessage("Timestep equal to zero!");
+	}
+
+	}
+
+}
+//---------------------------------------------------------------------------
+

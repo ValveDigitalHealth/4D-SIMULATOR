@@ -1,0 +1,408 @@
+
+#include "LRdModel_tissue_91.h"
+#include "LRdModel_cell_91.h"
+
+
+// Author: Pawel Kuklik
+//  XI.2004
+
+//************************************************************************
+
+Luo_Rudy_91_tissue::Luo_Rudy_91_tissue()
+{
+
+    X = SizeX;
+    Y = SizeY;
+
+    create_grid(X,Y);
+
+    dx = 0.02;
+
+    Tip_Timer = 3.0;
+
+    Pos_Size = 1000000;
+
+    Tip_Position = new int*[2];
+
+    for(int i=0;i<2;i++)
+        Tip_Position[i] = new int[Pos_Size];
+
+    tip_searching = false;
+    Tip_Counter = 0;
+
+    for(long i=0;i<Pos_Size;i++)
+    {
+        Tip_Position[0][i] = 0;
+        Tip_Position[1][i] = 0;
+    }
+
+}
+
+//************************************************************************
+
+Luo_Rudy_91_tissue::~Luo_Rudy_91_tissue()
+{
+    destroy_grid();
+//    delete [] Tip_Position;
+}
+
+//************************************************************************
+
+int Luo_Rudy_91_tissue::create_grid(int x, int y)
+{
+/*
+    int i;
+
+    LR_Tissue = new Luo_Rudy_91_cell*[x];
+
+    for(i=0;i<x;i++)
+        LR_Tissue[i] = new Luo_Rudy_91_cell[Y];
+*/
+}
+
+//************************************************************************
+
+int Luo_Rudy_91_tissue::destroy_grid()
+{
+/*
+    int i;
+
+    for(i=0;i<X;i++)
+        delete [] LR_Tissue[i];
+
+    delete [] LR_Tissue;
+*/
+}
+
+//************************************************************************
+
+void Luo_Rudy_91_tissue::calculate_N_steps(int steps_number, int if_tip)
+{
+    for(int i=0;i<steps_number;i++);
+        calculate_one_step();
+}
+
+//************************************************************************
+
+void Luo_Rudy_91_tissue::calculate_one_step()
+{
+    dx2 = dx*dx;
+
+    //---------------------------------------------------------------------
+    if( Boundary_Conditions_Type == 0 ) // zero flux
+    //---------------------------------------------------------------------
+    {
+
+    for(long i=1;i<X-1;i++)
+    for(long j=1;j<Y-1;j++)
+    {
+        // 1st compute diffusion term
+        LR_Tissue[i][j].Diffusion_Term =
+            LR_Tissue[i][j].Diffusion_Coefficient*
+            ( LR_Tissue[i+1][j].v + LR_Tissue[i-1][j].v +
+              LR_Tissue[i][j+1].v + LR_Tissue[i][j-1].v +
+              LR_Tissue[i+1][j+1].v + LR_Tissue[i-1][j-1].v +
+              LR_Tissue[i-1][j+1].v + LR_Tissue[i+1][j-1].v
+
+              -8.0*LR_Tissue[i][j].v ) / dx2;
+
+        LR_Tissue[i][j].compute_one_step();
+
+    }
+
+     //  zero flux boundary conditions
+     for(long  i=1; i<Y-1; i++ )
+     {
+            LR_Tissue[0][i].v = LR_Tissue[1][i].v;
+            LR_Tissue[X-1][i].v = LR_Tissue[X-2][i].v;
+     }
+
+     for(long  i=1; i<X-1; i++ )
+     {
+            LR_Tissue[i][0].v = LR_Tissue[i][1].v;
+            LR_Tissue[i][Y-1].v = LR_Tissue[i][Y-2].v;
+     }
+
+    // corners
+    LR_Tissue[0][0].v = LR_Tissue[1][1].v;
+    LR_Tissue[X-1][0].v = LR_Tissue[X-2][1].v;
+    LR_Tissue[0][Y-1].v = LR_Tissue[1][Y-1].v;
+    LR_Tissue[X-1][Y-1].v = LR_Tissue[X-2][Y-2].v;
+
+    } // zero flux boundary
+
+    //---------------------------------------------------------------------
+    if( Boundary_Conditions_Type == 1 ) // periodic
+    //---------------------------------------------------------------------
+    {
+
+    for(long i=1;i<X-1;i++)
+    for(long j=1;j<Y-1;j++)
+    {
+        LR_Tissue[i][j].Diffusion_Term =
+            LR_Tissue[i][j].Diffusion_Coefficient*
+            ( LR_Tissue[i+1][j].v + LR_Tissue[i-1][j].v +
+              LR_Tissue[i][j+1].v + LR_Tissue[i][j-1].v +
+              LR_Tissue[i+1][j+1].v + LR_Tissue[i-1][j-1].v +
+              LR_Tissue[i-1][j+1].v + LR_Tissue[i+1][j-1].v
+              -8.0*LR_Tissue[i][j].v ) / dx2;
+    }
+
+     //  upper edge
+     for(long i=1; i<X-1; i++ )
+     {
+        LR_Tissue[i][0].Diffusion_Term =
+            LR_Tissue[i][0].Diffusion_Coefficient*
+            ( LR_Tissue[i+1][0].v + LR_Tissue[i-1][0].v +
+              LR_Tissue[i][1].v + LR_Tissue[i][Y-1].v +
+              LR_Tissue[i+1][1].v + LR_Tissue[i-1][Y-1].v +
+              LR_Tissue[i-1][1].v + LR_Tissue[i+1][Y-1].v
+              -8.0*LR_Tissue[i][0].v ) / dx2;
+     }
+
+     //  lower edge
+     for(long  i=1; i<X-1; i++ )
+     {
+        LR_Tissue[i][Y-1].Diffusion_Term =
+            LR_Tissue[i][Y-1].Diffusion_Coefficient*
+            ( LR_Tissue[i+1][Y-1].v + LR_Tissue[i-1][Y-1].v +
+              LR_Tissue[i][0].v + LR_Tissue[i][Y-2].v +
+              LR_Tissue[i+1][0].v + LR_Tissue[i-1][Y-2].v +
+              LR_Tissue[i-1][0].v + LR_Tissue[i+1][Y-2].v
+              -8.0*LR_Tissue[i][Y-1].v ) / dx2;
+     }
+
+     //  left edge
+     for(long  j=1; j<Y-1; j++ )
+     {
+        LR_Tissue[0][j].Diffusion_Term =
+            LR_Tissue[0][j].Diffusion_Coefficient*
+            ( LR_Tissue[1][j].v + LR_Tissue[X-1][j].v +
+              LR_Tissue[0][j+1].v + LR_Tissue[0][j-1].v +
+              LR_Tissue[1][j+1].v + LR_Tissue[X-1][j-1].v +
+              LR_Tissue[X-1][j+1].v + LR_Tissue[1][j-1].v
+              -8.0*LR_Tissue[0][j].v ) / dx2;
+     }
+
+     //  right edge
+     for(long  j=1; j<Y-1; j++ )
+     {
+        LR_Tissue[X-1][j].Diffusion_Term =
+            LR_Tissue[X-1][j].Diffusion_Coefficient*
+            ( LR_Tissue[0][j].v + LR_Tissue[X-2][j].v +
+              LR_Tissue[X-1][j+1].v + LR_Tissue[X-1][j-1].v +
+              LR_Tissue[0][j+1].v + LR_Tissue[X-2][j-1].v +
+              LR_Tissue[X-2][j+1].v + LR_Tissue[0][j-1].v
+              -8.0*LR_Tissue[X-1][j].v ) / dx2;
+     }
+
+     // corners
+
+     // LU
+     LR_Tissue[0][0].Diffusion_Term =
+            LR_Tissue[0][0].Diffusion_Coefficient*
+            ( LR_Tissue[1][0].v + LR_Tissue[X-1][0].v +
+              LR_Tissue[0][1].v + LR_Tissue[0][Y-1].v +
+              -4.0*LR_Tissue[0][0].v ) / dx2;
+     // RU
+     LR_Tissue[X-1][0].Diffusion_Term =
+            LR_Tissue[X-1][0].Diffusion_Coefficient*
+            ( LR_Tissue[X-2][0].v + LR_Tissue[1][0].v +
+              LR_Tissue[X-1][1].v + LR_Tissue[X-1][Y-1].v +
+              -4.0*LR_Tissue[X-1][0].v ) / dx2;
+     // LL
+     LR_Tissue[0][Y-1].Diffusion_Term =
+            LR_Tissue[0][Y-1].Diffusion_Coefficient*
+            ( LR_Tissue[1][Y-1].v + LR_Tissue[X-1][Y-1].v +
+              LR_Tissue[0][Y-2].v + LR_Tissue[0][1].v +
+              -4.0*LR_Tissue[0][Y-1].v ) / dx2;
+     // RL
+     LR_Tissue[X-1][Y-1].Diffusion_Term =
+            LR_Tissue[X-1][Y-1].Diffusion_Coefficient*
+            ( LR_Tissue[0][Y-1].v + LR_Tissue[X-2][Y-1].v +
+              LR_Tissue[X-1][Y-2].v + LR_Tissue[X-1][0].v +
+              -4.0*LR_Tissue[X-1][Y-1].v ) / dx2;
+
+    for(long i=0;i<X;i++)
+    for(long j=0;j<Y;j++)
+    LR_Tissue[i][j].compute_one_step();         // !!!! a inne krawedzie ????
+
+    } // periodic boundary
+
+    // tip searching
+    if( tip_searching == true )
+    if( LR_Tissue[15][15].t - LR_Tissue[15][15].Timer > Tip_Timer )
+        find_tip();
+
+}
+
+//------------------------------------------------------------------------------
+
+bool Luo_Rudy_91_tissue::activity_present()
+{
+    bool present = false;
+
+    for(long i=1;i<X-1;i++)
+    for(long j=1;j<Y-1;j++)
+    if( LR_Tissue[i][j].v > -40 )
+    present = true;
+
+    return present;
+
+}
+
+//------------------------------------------------------------------------------
+void Luo_Rudy_91_tissue::find_tip()
+{
+    double min_T;
+    min_T = 100000.0;
+    int tx,ty;
+
+    tx = -1;
+    ty = -1;
+
+    int i,j;
+    dx2 = dx*dx;
+
+
+
+    for(i=5;i<X-5;i++)
+    for(j=5;j<Y-5;j++)
+    {
+
+        // find contur 2ms ago
+      if( LR_Tissue[i-1][j].V_Tip_Timer_ms_ago < LR_Tissue[i][j].Tip_Threshold
+      &&  LR_Tissue[i+1][j].V_Tip_Timer_ms_ago > LR_Tissue[i][j].Tip_Threshold
+      ||
+          LR_Tissue[i-1][j].V_Tip_Timer_ms_ago > LR_Tissue[i][j].Tip_Threshold
+      &&  LR_Tissue[i+1][j].V_Tip_Timer_ms_ago < LR_Tissue[i][j].Tip_Threshold
+      ||
+          LR_Tissue[i][j-1].V_Tip_Timer_ms_ago < LR_Tissue[i][j].Tip_Threshold
+      &&  LR_Tissue[i][j+1].V_Tip_Timer_ms_ago > LR_Tissue[i][j].Tip_Threshold
+      ||
+          LR_Tissue[i][j-1].V_Tip_Timer_ms_ago > LR_Tissue[i][j].Tip_Threshold
+      &&  LR_Tissue[i][j+1].V_Tip_Timer_ms_ago < LR_Tissue[i][j].Tip_Threshold
+      )
+
+    // check if this point is also now a contour line
+      if( LR_Tissue[i-1][j].v < LR_Tissue[i][j].Tip_Threshold
+      &&  LR_Tissue[i+1][j].v > LR_Tissue[i][j].Tip_Threshold
+      ||
+          LR_Tissue[i-1][j].v > LR_Tissue[i][j].Tip_Threshold
+      &&  LR_Tissue[i+1][j].v < LR_Tissue[i][j].Tip_Threshold
+      ||
+          LR_Tissue[i][j-1].v < LR_Tissue[i][j].Tip_Threshold
+      &&  LR_Tissue[i][j+1].v > LR_Tissue[i][j].Tip_Threshold
+      ||
+          LR_Tissue[i][j-1].v > LR_Tissue[i][j].Tip_Threshold
+      &&  LR_Tissue[i][j+1].v < LR_Tissue[i][j].Tip_Threshold
+      )
+      {
+
+      LR_Tissue[i][j].Tip_Function = fabs( LR_Tissue[i][j].v
+                                         - LR_Tissue[i][j].V_Tip_Timer_ms_ago);
+
+      if(LR_Tissue[i][j].Tip_Function < min_T)
+      {
+        tx = i;
+        ty = j;
+        min_T = LR_Tissue[i][j].Tip_Function;
+      }
+
+      } // if contours intersect
+
+    // update variables
+    LR_Tissue[i][j].V_Tip_Timer_ms_ago = LR_Tissue[i][j].v;
+    LR_Tissue[i][j].Timer = LR_Tissue[i][j].t;
+
+    } // for i,j
+
+    if( tx >= 0 && ty >= 0 )
+    {
+        LR_Tissue[tx][ty].Tip_Was_Here = 1;
+        Tip_Position[0][Tip_Counter] = tx;
+        Tip_Position[1][Tip_Counter] = ty;
+        Tip_Counter++;
+    }
+
+}
+
+//-------------------------------------------------------------------
+
+int Luo_Rudy_91_tissue::save_object(ofstream* dfile)
+{
+
+    dfile[0] << "version_1" << endl;
+
+    dfile[0] << X << " " << Y << endl;
+
+    for(long x=0;x<SizeX;x++)
+    for(long y=0;y<SizeY;y++)
+    LR_Tissue[x][y].save_object(dfile);
+
+}
+
+//-------------------------------------------------------------------
+
+int Luo_Rudy_91_tissue::load_object(ifstream* dfile)
+{
+    char string[2000];
+
+    dfile[0] >> string;
+
+    if( !strcmp(string,"version_1") )
+    {
+
+    dfile[0] >> X;
+    dfile[0] >> Y;
+
+    if( X != SizeX || Y != SizeY )
+    return -3;
+
+    for(long x=0;x<X;x++)
+    for(long y=0;y<Y;y++)
+    LR_Tissue[x][y].load_object(dfile);
+
+    return 1;
+
+    } // version_1
+}
+
+//-------------------------------------------------------------------
+
+int Luo_Rudy_91_tissue::record_potentials()
+{
+    for(long x=0;x<X;x++)
+    LR_Tissue[x][0].Voltage_History.push_back(LR_Tissue[x][0].v);
+}
+
+//-------------------------------------------------------------------
+
+int Luo_Rudy_91_tissue::compute_ISIs(long Node_Ptr_X, long Node_Ptr_Y)
+{
+    ISIs_Node_Ptr_X = Node_Ptr_X;
+    ISIs_Node_Ptr_Y = Node_Ptr_Y;
+    ISIs.clear();
+
+    double Threshold = -20;
+    double prev=0,curr=0;
+
+    if( Node_Ptr_X >= 0 && Node_Ptr_X < X )
+    if( Node_Ptr_Y >= 0 && Node_Ptr_Y < Y )
+    for(long t=1;t<LR_Tissue[Node_Ptr_X][Node_Ptr_Y].Voltage_History.size()-1;t++)
+    if( LR_Tissue[Node_Ptr_X][Node_Ptr_Y].Voltage_History[t-1] < Threshold )
+    if( LR_Tissue[Node_Ptr_X][Node_Ptr_Y].Voltage_History[t+1] > Threshold )
+    {
+        curr = t;
+
+        if( prev != 0 )
+            ISIs.push_back(curr-prev);
+
+        prev = curr;
+
+        t+=5;
+    }
+
+}
+
+//-------------------------------------------------------------------

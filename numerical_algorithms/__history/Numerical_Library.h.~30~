@@ -1,0 +1,614 @@
+//---------------------------------------------------------------------------
+/*
+
+4D simulation version
+
+MIT LICENSE Copyright (c) 2021 Pawel Kuklik
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the SOFTWARE.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE. */
+//---------------------------------------------------------------------------
+
+//---------------------------------------------------------------------------
+#ifndef Numerical_LibraryH
+#define Numerical_LibraryH
+//---------------------------------------------------------------------------
+
+#include <vcl.h>
+
+//---------------------------------------------------------------------------
+
+#include <stdio.h>
+#include <memory.h>
+#include <time.h>
+#include<stdint.h>
+#include <limits>
+#include <vector>
+#include <complex>
+#include <algorithm>    // std::sort
+#include <fstream>
+#include <math.h>
+#include <stdlib.h>
+#include <string.h>
+#include <complex>
+#include <iostream>
+#include <valarray>
+#include <cmath>
+#include <iostream>
+#include <numeric>
+#include <random>
+
+
+// #include "Eigen/Dense"  // conflicts with Vector3d. Would took some time to fix
+// using namespace Eigen;
+
+#include "vector_3d.h"
+#include "Matrix_2D.h"
+#include "Matrix_3D.h"
+#include "Parametric_3D_Line_Class.h"
+#include "Point_2D_Class.h"
+#include "Point_3D_Class.h"
+#include "ButterworthBandpass_Filter.h"
+#include "openglpicking/maths_funcs_for_ray_picking.h"
+//#include "spline.h"
+#include "Local_Activation.h"
+
+#include<stdint.h>
+
+typedef int TimeType;
+
+//---------------------------------------------------------------------------
+
+#ifndef NOT_POSSIBLE_TO_CALCULATE_VALUE
+#define NOT_POSSIBLE_TO_CALCULATE_VALUE -10000
+#endif
+
+//-----------------------------------------------------------------------
+
+struct Event {
+	double startTime;
+	double endTime;
+	double duration;
+	int Event_Type;
+};
+
+//-----------------------------------------------------------------------
+
+enum HeartRhythm {
+	SR,
+	AF,
+	notAF,
+	AFL,
+	AT,
+	SVT,
+	VT,
+	VF,
+	Brady,
+	PVC,
+	PAC,
+	LQT,
+	WPW,
+	BBB,
+	SinusBrady,
+	SinusTachy,
+	Asystole,
+	JunctRhythm,
+	Other,
+    Tachy,
+	Unclassified
+};
+
+//-----------------------------------------------------------------------
+class vector_of_doubles
+{
+	public:
+
+	vector <double> DVector;
+};
+
+//-----------------------------------------------------------------------
+class vector_of_floats
+{
+	public:
+
+	vector <float> DVector;
+};
+
+//-----------------------------------------------------------------------
+class vector_of_longs
+{
+	public:
+
+	vector <long> DVector;
+};
+
+//-----------------------------------------------------------------------
+
+struct VelocityVector_2D
+{
+	double amplitude;
+	double direction;
+};
+//-----------------------------------------------------------------------
+
+struct RGBColor {
+	int r, g, b;
+	RGBColor(int red, int green, int blue) : r(red), g(green), b(blue) {};
+	RGBColor(){};
+};
+
+//-----------------------------------------------------------------------
+
+struct domain_structure
+{
+	long Domain_Id;
+
+	std::vector<long> i_coordinates;
+	std::vector<long> j_coordinates;
+	std::vector<long> t_coordinates;
+
+	RGBColor RGB_Color;
+
+	// derived parameters
+	std::vector<double> Conescutive_Areas;
+	double xyt_Volume;
+
+};
+
+//-----------------------------------------------------------------------
+
+//-----------------------------------------------------------------------
+//-----------------------------------------------------------------------
+class Numerical_Library
+//-----------------------------------------------------------------------
+//-----------------------------------------------------------------------
+//-----------------------------------------------------------------------
+{
+	public:
+
+	Numerical_Library();
+
+	Butterworth_BandPass_Filter Butt_Filter;
+
+	//---------------------------------------------------------------------------
+	// min max calculations
+	//---------------------------------------------------------------------------
+	void find_min_max(std::vector<double> *Signal,double* Min, double* Max, long *Min_Ptr, long *Max_Ptr);
+
+	template <typename TV>
+	void calculate_max_min_mean_vec_ranged(std::vector<TV> *Signal,
+				long Begin,long End,double* Min, double* Max, double* Mean,double* SDev);
+
+	long calculate_max_min_mean_vec_long(std::vector<long> *Signal,long Begin, long End,
+		double* Min, double* Max, double* Mean, int* Peak_Direction);
+
+	void calculate_max_min_mean_vec_double(std::vector<double> *Signal,
+				double* Min, double* Max, double* Mean);
+
+	void calculate_max_min_vec_double_ranged(std::vector<double> *Signal,
+			long Begin, long End,double* Min, double* Max);
+
+	void calculate_max_min_mean_SD_vec_double(std::vector<double> *Signal,
+				double* Min, double* Max, double* Mean, double* SD);
+
+	void calculate_max_min_mean_slope_vec_ranged(std::vector<double> *Signal,
+				long Begin,long End,double* Max_slope, double* Min_slope);
+
+	template <typename TV>
+	double get_sum_of_vector(std::vector<TV> *Signal);
+
+	double get_average_from_vector(std::vector<double> *Signal);
+	std::vector<double> calculate_moving_average_distances_data_pair(
+		const std::vector<double>& distances, const std::vector<double>& data, double Window_Size);
+
+	void removeMinMax(std::vector<double> *RRs);
+
+	//----------------------------------------------------------------------------
+	// correlation calculations
+	//----------------------------------------------------------------------------
+	void correlation_coef_vec(std::vector <double> *vec1, std::vector <double> *vec2, double* corr);
+
+	double correlation_coef_vec_different_size(std::vector<double> *v1,std::vector<double> *v2,
+		long Start_Position_in_v1);
+	double covariance_coef_vec_different_size(std::vector<double> *v1,std::vector<double> *v2,
+		long Start_Position_in_v1);
+	double psimilarity_coef_vec_different_size(std::vector<double> *v1,std::vector<double> *v2,
+		long Start_Position_in_v1);
+
+	double get_amplitude_of_egms_difference(std::vector<double> *v1,std::vector<double> *v2);
+
+
+	std::vector <double> get_correlation_vector(std::vector <double> *v1,
+		std::vector <double> *v2, long Step  );
+	std::vector <double> get_correlation_vector_custom_range(std::vector <double> *v1,
+		std::vector <double> *v2, long Steps_Number, long Step_Size  );
+
+	std::vector <double> get_xcorrelation_vector(std::vector <double> *v1,
+		std::vector <double> *v2, long Step  );
+	std::vector <double> get_covariance_vector(std::vector <double> *v1,
+		std::vector <double> *v2, long Step  );
+	std::vector <double> get_psimilarity_vector(std::vector <double> *v1,
+		std::vector <double> *v2, long Step  );
+
+	void stdev_cor_vec(std::vector <double> *vec, double* average, double* SDev);
+
+	void covariance_vec(std::vector <double> *vec1, std::vector <double> *vec2, double* cov);
+
+	void stdev_cor_vec_double(std::vector <double> *vec, double* average, double* SDev);
+	void stdev_cor_vec_long(std::vector <long> *vec, double* average, double* SDev);
+
+	double get_non_zero_mean(double v1, double v2);
+
+	//--------------------------------------------------------------------------------------------
+	// Histogramming
+	//--------------------------------------------------------------------------------------------
+	std::vector <long> get_histogram(
+		std::vector <double> *Data,
+		double Box_Size,
+		bool Use_SD_Box_Size,
+		double* Bin_Size_from_SD,
+		bool Remove_Histo_5_95_Outliers,double *Histo_Min);
+
+	std::vector <long> get_histogram(
+		std::vector <double> *Data,
+		double Box_Size,
+		bool Use_SD_Box_Size,
+		double* Bin_Size_from_SD);
+
+	double get_percentile_from_histogram(std::vector<long>* Histo,double Percentile,double Start_Value, double Box_Size);
+
+	//----------------------------------------------------------------------------
+	// SHANNON ENTROPY FUNCTIONS
+	//----------------------------------------------------------------------------
+	double get_Shannon_Entropy(std::vector<double> *signal, bool Use_SD, double Bin_Size,bool Remove_Histo_5_95_Outliers);
+	double get_Shannon_Entropy_ranged(std::vector<double> *signal, long Start, long Stop, bool Use_SD, double Bin_Size,bool Remove_Histo_5_95_Outliers);
+
+	double get_Shannon_Entropy_from_histogram(std::vector<long> *Histogram);
+
+
+
+	std::complex <double> morlet_wavelet(double t);
+	std::vector <double> make_Continious_Wavelet_Transformation(
+			std::vector <double> *Data,long Start, long Stop, double Scaling_Factor );
+	std::complex<double> CWT(std::vector<double> *Data,long Start,long Stop,
+							double timestep,double a,double tau);
+
+	//--------------------------------------------------------------------------------------------
+	// Filtering
+	//--------------------------------------------------------------------------------------------
+	double get_median(std::vector<double> Data);
+	int median_filter(std::vector<double> &Signal,long Window_Length);
+
+	void rescale_signal(std::vector <double>* Signal,double Min,double Max);
+
+	std::vector <double> Butt_band_40_250_3th_order(std::vector <double> *Signal, bool Inverse);
+	std::vector <double> rectify_signal(std::vector <double> *Signal);
+	std::vector <double> Butt_low_20_3th_order(std::vector <double> *Signal, bool Inverse);
+	double x7[7],y7[7];
+	double x4[7],y4[7];
+
+	//--------------------------------------------------------------------------------------------
+	// Hilbert transfrom using convolution
+	//--------------------------------------------------------------------------------------------
+	void convol(std::vector<double> *source, std::vector<double> *target,
+		std::vector<double> *filt, int npt, int lfilt);
+	std::vector <double> get_Hilbert_phase_using_convolution_double(std::vector<double> *Signal,
+			double Time_Step_ms);
+
+	std::vector <double> get_electrogram_phase(
+			std::vector <double>* Signal,int EGM_Type, double Base_Period_ptr,double Time_Step_ms);
+	std::vector <Local_Activation_Class> get_local_activations_from_phase_signal(
+			std::vector <double>* Signal,int EGM_Type, double Time_Step_ms);
+
+	  std::vector <double> recompose_signal(std::vector<double> *Signal,int Wavelet_Period,int Electrogram_Type);
+	  std::vector <double> recompose_signal(std::vector<float> *Signal,int Wavelet_Period,int Electrogram_Type);
+	  std::vector <long>   recompose_signal(std::vector<long> *Signal,int Wavelet_Period,int Trigger_Type);
+
+	  double get_phase_synchronization(std::vector<double> *Signal_A,
+		std::vector<double> *Signal_B,int n,int m,bool Take_80_Perc_Flag,long Delay);
+	  double get_phase_synchronization_long(std::vector<long> *Signal_A,
+		std::vector<long> *Signal_B,int n,int m,bool Take_80_Perc_Flag,long Delay);
+
+	  std::vector <double> unwrap_phase(std::vector <double> *Phase_Vec);
+
+	  double get_MPC_between_electrograms(std::vector<double> *Electrogram_1,
+										  std::vector<double> *Electrogram_2,
+										  long Basic_Cycle_Length,int Electrogram_Type,
+										  long Delay,double Time_Step_ms);
+
+	std::vector<long> get_activation_timings(std::vector<double> *Phase);
+
+
+	  void get_rgb_colors_from_ranged_variable(double Min,double Max, double Value,
+											   int* R, int* G,int* B);
+
+
+
+	int get_triangle_based_CV(		 double N1_x,double N1_y,double N1_z,
+									 double N2_x,double N2_y,double N2_z,
+									 double N3_x,double N3_y,double N3_z,
+									 double LAT_N1,double LAT_N2,double LAT_N3,
+									 double* CV_magnitude,
+									 double* CV_x, double* CV_y, double* CV_z, bool* CV_valid);
+
+	void rotate_xyz_in_cartesian_system(double* x,double* y,double* z, double angle, int which_axis);
+	double get_min(double A,double B,double C);
+	double get_middle(double A,double B,double C);
+	double get_max(double A,double B,double C);
+
+	// CAUSALITY ANALYSIS
+
+	long get_number_of_words_causality_alphabet_method(std::vector <long> *Sender,
+			std::vector <long> *Receiver,int Word_Length);
+
+	void rotate_vector(double* x,double* y,double* z, double angle, int which_axis);
+
+	bool is_value_present_in_vector_long(std::vector<long> *Vec,long Value);
+
+	template <class TV>
+	bool is_value_present_in_vector(std::vector<TV> *Vec,TV Value)
+	{
+		for(unsigned long i=0;i<Vec[0].size();i++)
+		if( Vec[0][i]== Value )
+		return true;
+
+		return false;
+	}
+
+	bool is_value_present_int(int* Set,int Size, int Val);
+
+	long get_min_difference(long T,std::vector <long> *Vec);
+
+	double get_micro_fractionation(std::vector<double> *Signal,int Algorithm,
+		double Percentile_Threshold, int Window_Size);
+
+
+	//-----------------------------------------------------------------------
+	template <class T1>
+	std::vector <T1> downsample_by_factor(std::vector <T1> *X, long Factor)
+	{
+		std::vector <T1> Y;
+		for(long i=0;i<X[0].size();i+=Factor)
+			Y.push_back(X[0][i]);
+		return Y;
+	}
+	//-----------------------------------------------------------------------
+
+	//-----------------------------------------------------------------------
+	template <class T1>
+	std::vector <T1> resample(std::vector <T1> *X, long Start, long Stop, long Target_Length)
+	{
+	std::vector <T1> Y;
+	long Xs = Stop-Start; // X[0].size();
+	long L,R;
+	double Pos,v,vL,vP;
+
+	for(long i=0;i<Target_Length;i++)
+	{
+		L = Start+floor((double)i/(double)Target_Length*Xs);
+		Pos = Start+(double)i/(double)Target_Length*Xs - L;
+		R = L+1;
+
+		if( L < X[0].size() && R < X[0].size() )
+		{
+			vL = X[0][L];
+			vP = X[0][R];
+			v = (1-Pos)*vL + Pos*vP;
+		}
+		else
+		v = 0;
+
+		Y.push_back(v);
+	}
+
+
+	return Y;
+	}
+	//-----------------------------------------------------------------------
+
+	double Dot_Product(Point_3D* A,Point_3D* B);
+
+	double get_distance_between_3D_point_and_triangle(double Px,double Py,double Pz,
+													  double T1x,double T1y,double T1z,
+													  double T2x,double T2y,double T2z,
+													  double T3x,double T3y,double T3z );
+
+
+
+	//----------------------------------------------------------------------------
+	//----------------------------------------------------------------------------
+	// VARIOUS PEAK DETECTION FUNCTIONS
+	//----------------------------------------------------------------------------
+	//----------------------------------------------------------------------------
+	template <class T1>
+	std::vector <long> get_peak_positions(std::vector<T1> *Data,
+		double PDT,long Peak_Detection_Window,long Blanking_Window);
+
+	std::vector<long> detect_R_waves_Pan_Thompson(std::vector<double> *ecgSignal, double Time_Step_ms);
+
+	std::vector <long> calculate_peak_positions(double* values,long n,double threshold);
+	std::vector <long> calculate_peak_positions_vec(std::vector<double> *values,
+		double threshold,double margin_ratio);
+
+	// Fractionation (MPD) calculation
+	void calculate_MPD_peaks_positions(
+		std::vector<double> *Data_Vec, long Start,long Stop, double Time_Step,
+		bool Offset_to_Ref_Bar, long Ref_Bar_Position, long Roving_Bar_Position,
+		long Window_Size,
+		double PP_Threshold,
+		long Peak_Definition_Range,
+		std::vector <long> *Peaks_Positions_In_Signal,
+		double* Peak_Interval_Mean_ptr,
+		double* Peak_Interval_SD_ptr,
+		double* Last_Peak_Position_Relative_To_Roving_Position_ptr);
+
+
+	long get_position_of_peak(std::vector<long> *Signal,long Start, long Stop);
+
+	void find_max_peak_with_max_slopes(std::vector<double> *Signal,long Start, long Stop,
+										double* Max, long *Max_Ptr,int Slope_Range_Ptr);
+
+	//----------------------------------------------------------------------------
+	//----------------------------------------------------------------------------
+	//----------------------------------------------------------------------------
+
+
+
+	std::vector <double> normalize_signal(std::vector<double> *Signal,int Window_Length);
+	std::vector <double> get_sliding_SD_of_signal(std::vector<double> *Signal,int Window_Length);
+	std::vector <double> get_sliding_maxmin_of_signal(std::vector<double> *Signal,int Window_Length);
+	std::vector <double> get_abs_sum_in_window(std::vector<double> *Signal,long Window_Length);
+	std::vector <double> set_av_to_0_SD_to_1(std::vector<double> *Signal);
+
+	void calculate_SD_vec_double_ranged(std::vector<double> *Signal,long Begin,long End,double* SD);
+
+	std::vector <double> calculate_NAVX_CAFE(long Start,long Stop,
+		std::vector <double>* Signal,double Refraction_Time,double PP_Sensitivity,
+		double Duration, double Downstroke_Threshold, double* CAFE);
+
+
+
+	bool find_perpendicular_parametric_line_from_3_points(
+		Point_3D Point_A, // coordinates of the points
+		Point_3D Point_B, // line will go through point A
+		Point_3D Point_C,
+		Parametric_3D_line* Line );
+
+	bool solve_set_of_linear_equations_with_2_unknowns(
+			double a1,double b1,double c1, // |a1*x+b1*y=c1|
+			double a2,double b2,double c2, // |a2*x+b2*y=c2|
+			double* x,double* y);
+
+	void get_vector_product(double a1,double a2,double a3,
+							double b1,double b2,double b3,
+							double* x,double* y,double* z);
+
+	void find_line_pasing_two_points_in_3D(
+		Point_3D Point_A, // coordinates of the points
+		Point_3D Point_B, // line will go through point A and B
+		Parametric_3D_line* Line );
+
+	void rotate_xyz_in_polar_system(double* x,double* y,double* z,double Azimuth,double Zenith);
+
+	bool intersectRayTriangle(Vector3d orig, Vector3d dir,
+		Vector3d vert0, Vector3d vert1, Vector3d vert2,
+		Vector3d baryPosition, double *distance);
+
+	void get_barycentric_coordinates_within_triangle_of_projected_3D_point(
+			double Origin_x,double Origin_y,double Origin_z,
+			double T1_x,double T1_y,double T1_z,
+			double T2_x,double T2_y,double T2_z,
+			double T3_x,double T3_y,double T3_z,
+			double *Alpha,double *Beta,double *Gamma);
+
+	unsigned char ToByte(bool Bits[8]);
+	void FromByte(unsigned char c,bool Bits[8]);
+
+	double sign(double val);
+
+
+	std::vector<double> subtract_mean_from_signal(std::vector<double> Signal);
+	std::vector<double> movingWindowIntegration(std::vector<double>* inputSignal, int windowSize);
+
+	//-------------------------------------------------------------------------------
+	//-------------------------------------------------------------------------------
+	// Transfer Entropy support
+	//-------------------------------------------------------------------------------
+	//-------------------------------------------------------------------------------
+	void get_Transfer_Entropy_from_raw_egms(std::vector<double> *Signal_1,std::vector<double> *Signal_2,
+		double* TE_00,double* TE_01,double* TE_10,double* TE_11,int y_delay,
+		int EGM_Type, double Base_AFCL_ms, double TimeStep_ms, int Spike_Width_smp);
+
+	void get_Transfer_Entropy_from_binary_signals(std::vector<int> *Binary_Signal_1,std::vector<int> *Binary_Signal_2,
+		double* TE_00,double* TE_01,double* TE_10,double* TE_11,int y_delay);
+
+	std::vector<int> create_01_signal_from_egm(
+		std::vector<double> *Signal_1,std::vector<Local_Activation_Class> *Activations_Positions,int Width_samples);
+
+	std::vector<int> binary2asdf(std::vector<int> *V);
+
+	void transent_1(TimeType **all_series, const long series_count,
+		 const long *series_lengths,
+		 const TimeType y_delay,
+		 const TimeType duration,
+		 double *te_result);
+
+	void transent_ho(TimeType **all_series, const long series_count,
+		 const long *series_lengths,
+		 const long x_order, const long y_order,
+		 const TimeType y_delay,
+		 const TimeType duration,
+		 double *te_result);
+
+	//-------------------------------------------------------------------------------
+	// fitting functions
+
+	void fit_line_vertical_offsets(double* x, double* y, long start, long stop,
+							 double* a, double* b, double* F, double* R);
+
+	void fit_line_vertical_offsets_vec(std::vector <double> *y,
+									 double* a, double* b, double* F, double* R);
+
+	void fit_line_perpendicular_offsets(double* x, double* y, long start, long stop,
+							 double* a, double* b, double* F, double* R);
+
+	void fit_line_diff_phi_offsets(double* x, double* y, long start, long stop,
+							 double* a, double* b, double* F, double* R);
+
+	double exponentialFunction(double x, double a, double b);
+	void fitExponentialCurve(const std::vector<double>* xCoordinates, const std::vector<double>* yCoordinates, double* a, double* b);
+
+	double linearFunction(double x, double m, double b);
+	void fitLine(const std::vector<double> *xData, const std::vector<double>* yData, double* slope, double* intercept);
+
+	//-------------------------------------------------------------------------------
+
+	//-------------------------------------------------------------------------------
+	// used in correlation length detection events (but can be used for all types of signals)
+	//-------------------------------------------------------------------------------
+	std::vector<Event> detectEvents(const std::vector<double>& signal, double threshold);
+
+	//-------------------------------------------------------------------------------
+	// annotation of various hear rhtythm types
+	//-------------------------------------------------------------------------------
+	std::vector<HeartRhythm> annotate_heart_rhythm_type_in_ECG_signals_just_SR(
+		std::vector<double>* rrIntervals_ms,int RMSSD_Range, double SR_Tachy_Threshold_bpm,
+		double RMSSD_M_SR_Threshold);
+
+	std::vector<HeartRhythm> annotate_heart_rhythm_type_in_ECG_signals_ALL_Types(
+		std::vector<double>* rrIntervals_ms,int RMSSD_Range,double AF_Threshold,
+		double SR_Tachy_Threshold_bpm);
+
+	void calculate_RMMSD(std::vector<double> *RRs,double* RMMSD,double* Mean);
+
+// ===========================================================================
+
+	VelocityVector_2D calculateVelocityVector_2D_Grid(Point_2D grid[3][3], double timings[3][3]);
+
+	bool directions_similarity_test(double Angle_1_Rad, double Angle_2_Rad, double Tolerance_Rad);
+    double get_directions_difference(double Angle_1_Rad, double Angle_2_Rad);
+
+	// Function to convert HSL to RGB
+	RGBColor hslToRgb(double h, double s, double l);
+	// Function to generate distinct random colors
+	std::vector<RGBColor> generateDistinctColors(int n);
+
+
+};
+
+#endif

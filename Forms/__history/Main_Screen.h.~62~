@@ -1,0 +1,626 @@
+//---------------------------------------------------------------------------
+
+#ifndef Main_ScreenH
+#define Main_ScreenH
+
+//---------------------------------------------------------------------------
+#include <System.Classes.hpp>
+#include <Vcl.Controls.hpp>
+#include <Vcl.StdCtrls.hpp>
+#include <Vcl.Forms.hpp>
+#include <Vcl.ExtCtrls.hpp>
+#include <Vcl.Menus.hpp>
+#include <Vcl.ComCtrls.hpp>
+#include <Vcl.FileCtrl.hpp>
+#include <Vcl.Dialogs.hpp>
+#include <VCLTee.Chart.hpp>
+#include <VCLTee.Series.hpp>
+#include <VclTee.TeeGDIPlus.hpp>
+#include <VCLTee.TeEngine.hpp>
+#include <VCLTee.TeeProcs.hpp>
+
+#include <fstream>
+#include <stdio.h>
+#include <time.h>
+#include <vcl.h>
+#include <set>
+
+#include "Rich_Edit_Form.h"
+
+#include "AAMS_constants.h"
+
+#include "Ask_For_Single_Item_Form.h"
+#include "Progress_Bar_Form.h"
+#include "Options_Form_.h"
+#include <math.h>
+
+#include "OpenglPanel.h"
+#include "ArcBall.h"
+#include "OpenGL_Panel_Display_Parameters.h"
+#include "numerical_algorithms/combination.h"
+
+#include <VCLTee.Chart.hpp>
+#include <VclTee.TeeGDIPlus.hpp>
+#include <VCLTee.TeEngine.hpp>
+#include <VCLTee.TeeProcs.hpp>
+#include <VCLTee.Series.hpp>
+
+#include "Simulation_System_Class.h"
+
+//---------------------------------------------------------------------------
+class TMain_Screen_Form : public TForm
+{
+__published:	// IDE-managed Components
+	TMainMenu *MainMenu1;
+	TMenuItem *File1;
+	TMenuItem *LoadData1;
+	TMenuItem *SaveData1;
+    TMenuItem *N1;
+    TMenuItem *Exit1;
+    TPageControl *Main_PageControl;
+    TTabSheet *TabSheet1;
+    TPopupMenu *EP_Mapping_3D_Window_PopupMenu;
+    TMenuItem *Poiningmode1;
+	TMenuItem *Rotate2;
+	TMenuItem *Zoom2;
+	TMenuItem *Pan2;
+	TButton *Start_Sim_Button;
+    TTabSheet *TabSheet2;
+	TRadioGroup *Display_Type_RadioGroup;
+	TButton *Stop_Sim_Button;
+    TButton *Stim_Button;
+    TLabel *Time_Label;
+    TButton *Clear_Button;
+	TChart *Variables_Plot_Chart;
+    TFastLineSeries *Series1;
+    TFastLineSeries *Series2;
+    TCheckBox *Plot_Variables_CheckBox;
+    TButton *Clear_Variables_Plot_Button;
+    TTrackBar *Z_Slice_TrackBar;
+    TLabel *Z_Slice_Label;
+    TLabel *T_Slice_Label;
+    TTrackBar *T_Slice_TrackBar;
+    TButton *Make_Spiral_In_Current_Slice_Button;
+    TRadioGroup *System_Dim_RadioGroup;
+    TButton *Export_Sig_Plot_Button;
+    TSaveDialog *SaveDialog1;
+    TRadioGroup *Boundary_Conditions_RadioGroup;
+    TTabSheet *TabSheet3;
+    TScrollBar *Signal_Display_ScrollBar;
+    TChart *Single_Signal_Chart;
+	TLineSeries *Series3;
+    TChart *ISIs_Chart;
+    TLineSeries *LineSeries1;
+    TOpenDialog *OpenDialog1;
+    TRadioGroup *Paramter_Selection_RadioGroup;
+    TChart *ISIs_Parameters_Chart;
+    TLineSeries *LineSeries2;
+    TButton *Update_Par_Button;
+    TTabSheet *TabSheet4;
+    TLabel *Label2;
+    TLabel *Label3;
+    TLabel *Label4;
+    TEdit *Asm_Len_Edit;
+    TEdit *Asm_Amp_Edit;
+    TEdit *Ass_Ratio_Edit;
+	TCheckBox *Add_Assymetric_Modulation_CheckBox;
+    TMenuItem *Debug1;
+    TMenuItem *Displaymodulation1;
+    TLabel *Label5;
+	TEdit *Ass_Region_Size_Edit;
+    TTabSheet *Coupling;
+    TLabel *Label6;
+    TLabel *Label7;
+    TEdit *NDiffv1_Edit;
+    TEdit *DRadius_Edit;
+    TButton *Generate_Coupling_v1_Button;
+    TRadioGroup *Display_Value_RadioGroup;
+    TMenuItem *SIMULATIONTEMPLATES1;
+    TMenuItem *Gettotalcrosscorelationpowerinfnofprobofablationcouplingv11;
+    TCheckBox *Display_Sim_CheckBox;
+    TLabel *Label10;
+    TEdit *Lines_No_Edit;
+    TLabel *Label11;
+    TEdit *Perc_Len_Edit;
+	TCheckBox *Add_Current_Modulation_CheckBox;
+	TLabel *Label12;
+	TEdit *CMA_Edit;
+	TLabel *Label13;
+	TEdit *CML_Edit;
+	TRadioGroup *Plot_Source_RadioGroup;
+	TLabel *Label14;
+	TEdit *DX_Edit;
+	TEdit *DY_Edit;
+	TCheckBox *Disks_CheckBox;
+	TCheckBox *Lines_CheckBox;
+	TTabSheet *TabSheet5;
+	TChart *Signals_Tab_Chart;
+	TFastLineSeries *Series4;
+	TFastLineSeries *Series5;
+	TFastLineSeries *Series6;
+	TFastLineSeries *Series7;
+	TFastLineSeries *Series8;
+	TFastLineSeries *Series9;
+	TFastLineSeries *Series10;
+	TFastLineSeries *Series11;
+	TFastLineSeries *Series12;
+	TFastLineSeries *Series13;
+	TFastLineSeries *Series14;
+	TFastLineSeries *Series15;
+	TFastLineSeries *Series16;
+	TFastLineSeries *Series17;
+	TFastLineSeries *Series18;
+	TFastLineSeries *Series19;
+	TFastLineSeries *Series20;
+	TFastLineSeries *Series21;
+	TFastLineSeries *Series22;
+	TFastLineSeries *Series23;
+	TFastLineSeries *Series24;
+	TFastLineSeries *Series25;
+	TFastLineSeries *Series26;
+	TFastLineSeries *Series27;
+	TFastLineSeries *Series28;
+	TFastLineSeries *Series29;
+	TFastLineSeries *Series30;
+	TFastLineSeries *Series31;
+	TFastLineSeries *Series32;
+	TFastLineSeries *Series33;
+	TFastLineSeries *Series34;
+	TButton *Signals_Tab_Refresh_Button;
+	TLabel *Label9;
+	TEdit *Grid_Spacing_Edit;
+	TRadioGroup *SC_RadioGroup;
+	TCheckBox *ARings_CheckBox;
+	TLabel *Label15;
+	TLabel *Label16;
+	TEdit *AR_Radius_Edit;
+	TEdit *AR_Perc_Edit;
+	TCheckBox *CDCB_CheckBox;
+	TLabel *Label17;
+	TEdit *CD_R_Edit;
+	TButton *Reduce_Button;
+	TLabel *Label18;
+	TEdit *PL_Edit;
+	TLabel *Label19;
+	TLabel *Label20;
+	TLabel *Label21;
+	TLabel *Label22;
+	TEdit *mi1_left_Edit;
+	TEdit *mi2_left_Edit;
+	TEdit *mi1_right_Edit;
+	TEdit *mi2_right_Edit;
+	TButton *SET_MI_Button;
+	TLabel *Label23;
+	TEdit *Cut_ratio_mi_Edit;
+	TLabel *Label24;
+	TLabel *Label25;
+	TLabel *Label26;
+	TEdit *DR_Edit;
+	TEdit *DN_Edit;
+	TButton *Generate_Random_Breakup_Rings_Button;
+	TRadioGroup *LMB_Action_RadioGroup;
+	TMenuItem *Signalprocessing1;
+	TMenuItem *ComputeMPC1;
+	TLabel *Label27;
+	TEdit *BCL_Edit;
+	TLineSeries *Series35;
+	TEdit *Min_Disp_Val_Edit;
+	TEdit *Max_Disp_Val_Edit;
+	TLabel *Label28;
+	TLabel *Label29;
+	TButton *Set_Custom_Color_Range_Button;
+	TLabel *Label30;
+	TLabel *Label31;
+	TLabel *Label32;
+	TEdit *RL_Edit;
+	TEdit *ppL_Edit;
+	TButton *Landscape_mi1_Button;
+	TLabel *Label33;
+	TEdit *IL_Edit;
+	TLabel *Label34;
+	TLabel *Label35;
+	TEdit *mi_min_Edit;
+	TEdit *mi_max_Edit;
+	TMenuItem *Options1;
+	TMenuItem *Options2;
+	TTabSheet *TabSheet6;
+	TButton *Clear_ECG_Button;
+	TCheckBox *Record_ECG_CheckBox;
+	TChart *ECG_Chart;
+	TLineSeries *Series36;
+	TButton *Export_Button;
+	TLabel *Label37;
+	TLabel *Label38;
+	TEdit *Min_Z_D_Edit;
+	TEdit *Max_Z_D_Edit;
+	TButton *Z_D_Grad_Button;
+	TButton *Gen2_Button;
+	TLabel *Label39;
+	TLabel *Label40;
+	TLabel *Label41;
+	TEdit *mincp_Edit;
+	TEdit *maxcp_Edit;
+	TLabel *Label42;
+	TLabel *Label43;
+	TEdit *DCLN_Edit;
+	TEdit *DCLR_Edit;
+	TButton *Set_Layers_Coupling_Button;
+	TLabel *Label44;
+	TRadioGroup *Layer_RadioGroup;
+	TTabSheet *TabSheet7;
+	TLabel *Label45;
+	TComboBox *CR_Level_ComboBox;
+	TLabel *Label46;
+	TComboBox *CR_Number_ComboBox;
+	TLabel *Label47;
+	TCheckBox *Diff_Sizes_CR_Search_CheckBox;
+	TButton *Begin_CR_Protocol_Button;
+	TLabel *Label48;
+	TComboBox *CR_Regions_Overlap_ComboBox;
+	TListBox *CRs_ListBox;
+	TLabel *Label49;
+	TEdit *CR_Test_Time_Edit;
+	TLabel *CR_Progress_Label;
+	TRadioGroup *InhVar_RadioGroup;
+	TMenuItem *N2;
+	TMenuItem *GeneratesetofstudieswihtstableAF1;
+	TButton *Initiate_AF_Button;
+	TLabel *Label50;
+	TEdit *TSTN_Edit;
+	TButton *Test_CR_Button1;
+	TButton *Stop2_Button;
+	TMenuItem *CriticalRegions1;
+	TMenuItem *ProcessfolderandcomputeCRs1;
+	TFileListBox *Data_FileListBox;
+	TMenuItem *N3Computeunipolarelectrograms1;
+	TMenuItem *N4Computeelectrogramparameters1;
+	TMenuItem *ComputeElectrogramParameters1;
+	TMenuItem *ComputeSDofcyclelength1;
+	TLabel *Value_Label;
+	TMenuItem *Debug2;
+	TMenuItem *Causalitytest1;
+	TMenuItem *N3;
+	TMenuItem *Pushas1stsignal1;
+	TMenuItem *Pushas2ndsignal1;
+	TPointSeries *Series37;
+	TMenuItem *Computecausalitymap1;
+	TMenuItem *Computeglobalcausalitymaplongcomputations1;
+	TMenuItem *VIRTUALABLATIONS1;
+	TMenuItem *AblateaccordingtoCL1;
+	TMenuItem *N4;
+	TMenuItem *ExportVoltageHistorytextfile1;
+	TMenuItem *Anandextension1;
+	TMenuItem *Generatesimulationfile1;
+	TMenuItem *GeneratesimulationfilePLANARWAVES1;
+	TButton *Mimi2_Disk_Button;
+	TScrollBar *History_ScrollBar;
+	TLabel *Timer_Slider_Label;
+	TPanel *Panel_1;
+	TCheckBox *Record_Potentials_CheckBox;
+	TLabel *Label1;
+	TEdit *Sampling_Edit;
+	TButton *Clear_Sig_History_Button;
+	TLabel *Label52;
+	TEdit *VS_Gap_Edit;
+	TRadioGroup *Signal_Type_To_Record_RadioGroup;
+	TChart *CL_Chart;
+	TLineSeries *Series38;
+	TLabel *Label53;
+	TLabel *Label54;
+	TEdit *CL_W_Size_Edit;
+	TEdit *CL_W_Step_Edit;
+	TCheckBox *Corr_L_CheckBox;
+	TButton *Recalculate_CL_Button;
+	TEdit *Basic_CL_Edit;
+	TLabel *Label55;
+	TLineSeries *Series39;
+	TLineSeries *Series40;
+	TLineSeries *Series41;
+	TLineSeries *Series42;
+	TLineSeries *Series43;
+	TLineSeries *Series44;
+	TLineSeries *Series45;
+	TLineSeries *Series46;
+	TLineSeries *Series47;
+	TLineSeries *Series48;
+	TLineSeries *Series49;
+	TLineSeries *Series50;
+	TLineSeries *Series51;
+	TLineSeries *Series52;
+	TLineSeries *Series53;
+	TLineSeries *Series54;
+	TLineSeries *Series55;
+	TLineSeries *Series56;
+	TLineSeries *Series57;
+	TLineSeries *Series58;
+	TLineSeries *Series59;
+	TLineSeries *Series60;
+	TLineSeries *Series61;
+	TLineSeries *Series62;
+	TLineSeries *Series63;
+	TLineSeries *Series64;
+	TLineSeries *Series65;
+	TLineSeries *Series67;
+	TLineSeries *Series68;
+	TLineSeries *Series70;
+	TRadioGroup *Calculation_Target_RadioGroup;
+	TChart *MPC_Dist_Chart;
+	TLineSeries *LineSeries4;
+	TPointSeries *LineSeries3;
+	TPointSeries *Series72;
+	TPointSeries *Series73;
+	TPointSeries *Series74;
+	TPointSeries *Series75;
+	TPointSeries *Series76;
+	TPointSeries *Series77;
+	TPointSeries *Series78;
+	TPointSeries *Series79;
+	TPointSeries *Series80;
+	TPointSeries *Series81;
+	TPointSeries *Series82;
+	TPointSeries *Series83;
+	TPointSeries *Series84;
+	TPointSeries *Series85;
+	TPointSeries *Series86;
+	TPointSeries *Series87;
+	TPointSeries *Series88;
+	TPointSeries *Series89;
+	TPointSeries *Series90;
+	TPointSeries *Series91;
+	TPointSeries *Series92;
+	TPointSeries *Series93;
+	TPointSeries *Series94;
+	TPointSeries *Series95;
+	TPointSeries *Series96;
+	TPointSeries *Series97;
+	TPointSeries *Series98;
+	TPointSeries *Series99;
+	TPointSeries *Series100;
+	TPointSeries *Series101;
+	TCheckBox *Display_Conduction_Arrows_Mean_CheckBox;
+	TButton *Calculate_CV_Button;
+	TLabel *Label8;
+	TEdit *Arrow_Size_Edit;
+	TMenuItem *Help1;
+	TMenuItem *Debug3;
+	TMenuItem *N5;
+	TMenuItem *Debug11;
+	TButton *Laminar_Domains_Calculate_Button;
+	TLabel *Label56;
+	TEdit *Direction_Tolerance_Edit;
+	TRichEdit *Main_Control_Page_RichEdit;
+	TLabel *Label36;
+	TEdit *Pause_Edit;
+	TEdit *Timestep_Edit;
+	TLabel *Label57;
+	TButton *Angle_vs_distance_Button;
+	TLabel *Label51;
+	TEdit *Arrow_Mesh_Spacing_Edit;
+	TLabel *Label58;
+	TEdit *CV_Mesh_Spacing_Edit;
+	TButton *Recalculate_Phase_Button;
+	TRadioGroup *Phase_vs_Distance_Source_RadioGroup;
+	TRadioGroup *Corr_Dist_Scatter_Type_RadioGroup;
+	TRadioGroup *CV_Vectors_Method_RadioGroup;
+	TEdit *Playback_Speed_Edit;
+	TButton *Play_Button;
+	TLabel *T_Label;
+	TButton *Stop_Playback_Button;
+	void __fastcall Exit1Click(TObject *Sender);
+	void __fastcall FormResize(TObject *Sender);
+
+	void __fastcall Start_Sim_ButtonClick(TObject *Sender);
+	void __fastcall Stop_Sim_ButtonClick(TObject *Sender);
+	void __fastcall Stim_ButtonClick(TObject *Sender);
+	void __fastcall Clear_ButtonClick(TObject *Sender);
+	void __fastcall Clear_Variables_Plot_ButtonClick(TObject *Sender);
+	void __fastcall Z_Slice_TrackBarChange(TObject *Sender);
+	void __fastcall T_Slice_TrackBarChange(TObject *Sender);
+	void __fastcall Make_Spiral_In_Current_Slice_ButtonClick(TObject *Sender);
+    void __fastcall System_Dim_RadioGroupClick(TObject *Sender);
+    void __fastcall Export_Sig_Plot_ButtonClick(TObject *Sender);
+	void __fastcall SaveData1Click(TObject *Sender);
+    void __fastcall LoadData1Click(TObject *Sender);
+    void __fastcall Update_Par_ButtonClick(TObject *Sender);
+	void __fastcall Paramter_Selection_RadioGroupClick(TObject *Sender);
+    void __fastcall Add_Assymetric_Modulation_CheckBoxClick(TObject *Sender);
+	void __fastcall Displaymodulation1Click(TObject *Sender);
+    void __fastcall Generate_Coupling_v1_ButtonClick(TObject *Sender);
+    void __fastcall Display_Type_RadioGroupClick(TObject *Sender);
+    void __fastcall Display_Value_RadioGroupClick(TObject *Sender);
+    void __fastcall Gettotalcrosscorelationpowerinfnofprobofablationcouplingv11Click(TObject *Sender);
+	void __fastcall Add_Current_Modulation_CheckBoxClick(TObject *Sender);
+	void __fastcall Signals_Tab_Refresh_ButtonClick(TObject *Sender);
+	void __fastcall Reduce_ButtonClick(TObject *Sender);
+	void __fastcall SET_MI_ButtonClick(TObject *Sender);
+	void __fastcall Generate_Random_Breakup_Rings_ButtonClick(TObject *Sender);
+	void __fastcall ComputeMPC1Click(TObject *Sender);
+	void __fastcall Set_Custom_Color_Range_ButtonClick(TObject *Sender);
+	void __fastcall Landscape_mi1_ButtonClick(TObject *Sender);
+	void __fastcall Options2Click(TObject *Sender);
+	void __fastcall Rotate2Click(TObject *Sender);
+	void __fastcall Zoom2Click(TObject *Sender);
+	void __fastcall Pan2Click(TObject *Sender);
+	void __fastcall Poiningmode1Click(TObject *Sender);
+	void __fastcall Clear_ECG_ButtonClick(TObject *Sender);
+	void __fastcall FormShow(TObject *Sender);
+	void __fastcall Export_ButtonClick(TObject *Sender);
+	void __fastcall Z_D_Grad_ButtonClick(TObject *Sender);
+	void __fastcall Gen2_ButtonClick(TObject *Sender);
+	void __fastcall Set_Layers_Coupling_ButtonClick(TObject *Sender);
+	void __fastcall Layer_RadioGroupClick(TObject *Sender);
+	void __fastcall Load_Seed_Study_ButtonClick(TObject *Sender);
+	void __fastcall Begin_CR_Protocol_ButtonClick(TObject *Sender);
+	void __fastcall CRs_ListBoxClick(TObject *Sender);
+	void __fastcall CR_Level_ComboBoxChange(TObject *Sender);
+	void __fastcall CR_Number_ComboBoxChange(TObject *Sender);
+	void __fastcall CR_Regions_Overlap_ComboBoxChange(TObject *Sender);
+	void __fastcall Diff_Sizes_CR_Search_CheckBoxClick(TObject *Sender);
+	void __fastcall CR_Test_Time_EditChange(TObject *Sender);
+	void __fastcall Boundary_Conditions_RadioGroupClick(TObject *Sender);
+	void __fastcall InhVar_RadioGroupClick(TObject *Sender);
+	void __fastcall GeneratesetofstudieswihtstableAF1Click(TObject *Sender);
+	void __fastcall Initiate_AF_ButtonClick(TObject *Sender);
+	void __fastcall Test_CR_Button1Click(TObject *Sender);
+	void __fastcall ProcessfolderandcomputeCRs1Click(TObject *Sender);
+	void __fastcall N3Computeunipolarelectrograms1Click(TObject *Sender);
+	void __fastcall N4Computeelectrogramparameters1Click(TObject *Sender);
+	void __fastcall ComputeElectrogramParameters1Click(TObject *Sender);
+	void __fastcall ComputeSDofcyclelength1Click(TObject *Sender);
+	void __fastcall Causalitytest1Click(TObject *Sender);
+	void __fastcall Pushas1stsignal1Click(TObject *Sender);
+	void __fastcall Pushas2ndsignal1Click(TObject *Sender);
+	void __fastcall Computecausalitymap1Click(TObject *Sender);
+	void __fastcall Computeglobalcausalitymaplongcomputations1Click(TObject *Sender);
+	void __fastcall AblateaccordingtoCL1Click(TObject *Sender);
+	void __fastcall ExportVoltageHistorytextfile1Click(TObject *Sender);
+	void __fastcall Generatesimulationfile1Click(TObject *Sender);
+	void __fastcall GeneratesimulationfilePLANARWAVES1Click(TObject *Sender);
+	void __fastcall Mimi2_Disk_ButtonClick(TObject *Sender);
+	void __fastcall History_ScrollBarChange(TObject *Sender);
+	void __fastcall FormCreate(TObject *Sender);
+	void __fastcall FormDestroy(TObject *Sender);
+
+	void __fastcall Panel_1MouseUp(TObject *Sender, TMouseButton Button, TShiftState Shift,
+		  int X, int Y);
+	void __fastcall Panel_1MouseMove(TObject *Sender, TShiftState Shift, int X, int Y);
+	void __fastcall Panel_1MouseDown(TObject *Sender, TMouseButton Button, TShiftState Shift,
+		  int X, int Y);
+	void __fastcall Recalculate_CL_ButtonClick(TObject *Sender);
+	void __fastcall SC_RadioGroupClick(TObject *Sender);
+	void __fastcall Calculation_Target_RadioGroupClick(TObject *Sender);
+	void __fastcall Calculate_CV_ButtonClick(TObject *Sender);
+	void __fastcall Debug11Click(TObject *Sender);
+	void __fastcall Laminar_Domains_Calculate_ButtonClick(TObject *Sender);
+	void __fastcall Angle_vs_distance_ButtonClick(TObject *Sender);
+	void __fastcall Recalculate_Phase_ButtonClick(TObject *Sender);
+	void __fastcall Play_ButtonClick(TObject *Sender);
+	void __fastcall Stop_Playback_ButtonClick(TObject *Sender);
+
+	private:	// User declarations
+
+	public:		// User declarations
+
+	__fastcall TMain_Screen_Form(TComponent* Owner);
+
+	//-----------------------------------------------------------
+	// Below variables used to implement ArcBall rotation
+	//-----------------------------------------------------------
+	ArcBallT    ArcBall; // ArcBall object
+	Matrix3fT   LastRot; // Last rotation
+	Matrix3fT   ThisRot; // Current rotation
+	Matrix4fT   Transform; // Resulted transform matrix
+	Point2fT    MousePt; // Mouse position
+
+	double Ratio_X;
+	double Ratio_Y;
+
+	//-------------------------------------------------------------------------
+	// Mouse stuff
+	//------------------------------------------------------------------------
+	typedef enum {
+		  MB_DOWN1,
+		  MB_UP1
+		  } Emouse;
+
+	Emouse MouseStatus;
+	TMouseButton MouseButton;
+	int Mouse_X,Mouse_Y;
+
+	bool Resizing_Dragging_Mode;
+
+	int Mouse_Position_X,Mouse_Position_Y;
+
+	void set_initial_world_position();
+	void rotate_world_using_angles(double heading, double attitude, double bank);
+
+	int Pointed_Spot_i,Pointed_Spot_j; // coords of last clicked element
+
+	void get_corrected_pointed_location(double Ratio_X,double Ratio_Y,int *i_coord,int *j_coord);
+
+	//-----------------------------------------------------------
+	// Below stuff taken from ATMS (ElectroView):
+	// Function returns ON if given (int tag) element of Map_Panel_PopupMenu
+	// is checked. Used to check which action type is taken when
+	// dragging occurs on OpenGL panel
+	// Tag types (as in atms_program_parameters.h)
+	// MAP_POPUP_ITEM_SELECT_MODE
+	// MAP_POPUP_ITEM_ROTATE
+	// MAP_POPUP_ITEM_ZOOM
+	// MAP_POPUP_ITEM_PAN
+	// MAP_POPUP_ITEM_ZOOM_CLIPPING_PLANE
+	// MAP_POPUP_ITEM_ENABLE_CLIPPING_PLANE
+	//-----------------------------------------------------------
+	int __fastcall is_Map_Panel_PopupMenu_item_tag_checked(int tag);
+
+	//-----------------------------------------------------------
+	// Function sets state of the Map_Panel_PopupMenu item (as pointed by int tag)
+	// to state "checked".
+	//-----------------------------------------------------------
+	void set_Map_Panel_PopupMenu_item_checked_state(int tag,bool checked);
+
+	void __fastcall repaint_all_controls();
+
+	void __fastcall opengl_panel_paint();
+	void map_display_panels_paint(int Type);
+	void paint_3D_contents(int Type);
+
+	void paint_slice();
+	void paint_slab();
+
+	//----------------------------------------------------------------------
+	//----------------------------------------------------------------------
+	Simulation_System_Class Simulation_System;
+	//----------------------------------------------------------------------
+	//----------------------------------------------------------------------
+
+	AnsiString Application_Directory;
+
+	bool Simulation_Flag;
+
+	int Current_Z_Slice;
+	int Current_T_Slice;
+
+	Numerical_Library NumAlg;
+
+	double Custom_Global_Value; // to be used in different functions
+
+	bool Fixed_Simulation_Time_Flag;
+	double Max_Time;
+
+	void display_single_signal_from_history_vector(long Node_Ptr);
+
+	void display_single_signal_from_history_array(double X, double Y,int Which);
+	void display_signals_from_history_array();
+
+//	Pawel_Numerical_Library NL;
+
+	void save_interface_parameters_to_sim_system();
+	void load_interface_parameters_from_sim_system();
+
+	bool Echo;
+
+	void compute_global_causality_map(int Grid_Sampling, int Word_Length);
+
+	//----------------------------------------------------------------------
+	// OPENGL VARIABLES and SUPPORT
+	//----------------------------------------------------------------------
+	OpenGL_Panel_Class OpenGL_Panel_1;
+
+	void map_display_panel_mouse_down(TMouseButton Button, TShiftState Shift,int X, int Y, OpenGL_Panel_Class* Current_OpenGL_Panel);
+	void map_dislplay_panel_mouse_move(int X, int Y, OpenGL_Panel_Class* Current_OpenGL_Panel);
+
+	bool perform_pre_import_queries();
+	void post_import_initialization(int Surface_Ptr,double Max_Distance_Th_mm,bool DownSample_Mesh_Flag);
+
+	// bool is_Map_Panel_PopupMenu_item_tag_checked(int tag);
+
+	void mark_line_point(double Ratio_X,double Ratio_Y);
+
+    bool Playback_flag;
+
+};
+//---------------------------------------------------------------------------
+extern PACKAGE TMain_Screen_Form *Main_Screen_Form;
+//---------------------------------------------------------------------------
+#endif

@@ -1,0 +1,1803 @@
+#include <stdlib.h>
+#include <math.h>
+#include <fstream>
+#include <vcl.h>
+#include "TP1A_2L_system.h"
+
+#pragma hdrstop
+
+//---------------------------------------------------------------------------
+#pragma package(smart_init)
+
+//---------------------------------------------------------------------------
+
+void TP1A_2L_system_CR_region_class::clear()
+{
+	X.clear();
+	Y.clear();
+	R.clear();
+	Layer.clear();
+}
+
+//---------------------------------------------------------------------------
+
+TP1A_2L_system_class::~TP1A_2L_system_class()
+{
+    free_tables();
+}
+//---------------------------------------------------------------------------
+
+TP1A_2L_system_class::TP1A_2L_system_class()
+{
+    Min_Voltage = 0;
+    Max_Voltage = 1;
+
+    Min_Diff = 0;
+	Max_Diff_X = 0.2;
+	Max_Diff_Y = 0.2;
+
+	a = 0.1;
+	k_par = 8;
+	eps = 0.01;
+	mi1 = 0.1;
+	mi2 = 0.3;
+	b = 0.1;
+
+  // stable spiral parameters
+//	mi1 = 0.2;
+
+   // breakup parameters
+	mi1 = 0.05;
+
+	Coupling_Init = 0.01;
+
+	dx = 0.6;
+	dt = 0.02;  // normal
+//	dt = 0.002;    // slow for animations
+
+	Size_X = TWO_DIM_SYSTEM_X_SIZE;
+    Size_Y = TWO_DIM_SYSTEM_Y_SIZE;
+    allocate_tables();
+
+    Global_Time=0;
+
+	// Load phase vector
+	ifstream dfile;
+	char s[3000];
+	dfile.open( "TP1A_phase.txt" );
+    if(dfile==NULL) ShowMessage("Unable to open TP1A_phase.txt file");
+    else
+	{
+        dfile >> TP1A_APD_Length;
+		TP1A_Activation_Variable_APD = new double[TP1A_APD_Length];
+        TP1A_Recovery_Variable_APD = new double[TP1A_APD_Length];
+
+        for(long i=0;i<TP1A_APD_Length;i++)
+        {
+            dfile >> s; TP1A_Activation_Variable_APD[i] = atof(s);
+            dfile >> s; TP1A_Recovery_Variable_APD[i] = atof(s);
+        }
+    }
+
+	Min_Custom_Value=0;
+	Max_Custom_Value=1;
+
+}
+
+//---------------------------------------------------------------------------
+
+int TP1A_2L_system_class::allocate_tables()
+{
+	vector_of_doubles D;
+	D.DVector.clear();
+	Middle_Row_Voltage_History.clear();
+	Middle_Row_Voltage_History.assign(Size_X,D);
+
+/*
+	V1 = (double**) malloc((unsigned)(Size_X)*sizeof(double*));
+	V2 = (double**) malloc((unsigned)(Size_X)*sizeof(double*));
+	W1 = (double**) malloc((unsigned)(Size_X)*sizeof(double*));
+	W2 = (double**) malloc((unsigned)(Size_X)*sizeof(double*));
+	DX = (double**) malloc((unsigned)(Size_X)*sizeof(double*));
+	DY = (double**) malloc((unsigned)(Size_X)*sizeof(double*));
+	if (!V1) exit(0);
+
+	for( int i=0; i < Size_X; i++)
+	{
+		V1[i] = (double*) malloc((unsigned)(Size_Y)*sizeof(double));
+		V2[i] = (double*) malloc((unsigned)(Size_Y)*sizeof(double));
+		W1[i] = (double*) malloc((unsigned)(Size_Y)*sizeof(double));
+		W2[i] = (double*) malloc((unsigned)(Size_Y)*sizeof(double));
+		DX[i] = (double*) malloc((unsigned)(Size_Y)*sizeof(double));
+		DY[i] = (double*) malloc((unsigned)(Size_Y)*sizeof(double));
+		if (!V1[i]) exit(0);
+	}
+
+*/
+	for( int i=0; i<Size_X; i++)
+	for( int j=0; j<Size_Y; j++)
+	{
+		DX_A[i][j] = Max_Diff_X;
+		DY_A[i][j] = Max_Diff_Y;
+		MI1_A[i][j] = mi1;
+		MI2_A[i][j] = mi2;
+
+		DX_B[i][j] = Max_Diff_X;
+		DY_B[i][j] = Max_Diff_Y;
+		MI1_B[i][j] = mi1;
+		MI2_B[i][j] = mi2;
+
+		CUSTOM_VALUE[i][j]=0.5;
+
+		COUPLING[i][j] = Coupling_Init;
+
+		VOLTAGE_HISTORY_A[i][j].DVector.clear();
+		VOLTAGE_HISTORY_B[i][j].DVector.clear();
+	}
+
+	clear_system();
+
+	return 1;
+}
+
+//---------------------------------------------------------------------------
+
+void TP1A_2L_system_class::set_mi_distribution(double mi1_left,double mi2_left,
+							 double mi1_right,double mi2_right,
+							 double Ratio)
+{
+	if( Ratio >= 0 & Ratio <= 1 )
+	{
+
+	for( int i=0; i<Ratio*Size_X; i++)
+	for( int j=0; j<Size_Y; j++)
+	{
+		MI1_A[i][j] = mi1_left;
+		MI2_A[i][j] = mi2_left;
+
+		MI1_B[i][j] = mi1_left;
+		MI2_B[i][j] = mi2_left;
+	}
+
+	for( int i=Ratio*Size_X; i<Size_X; i++)
+	for( int j=0; j<Size_Y; j++)
+	{
+		MI1_A[i][j] = mi1_right;
+		MI2_A[i][j] = mi2_right;
+
+		MI1_B[i][j] = mi1_right;
+		MI2_B[i][j] = mi2_right;
+	}
+	}
+}
+
+//---------------------------------------------------------------------------
+void TP1A_2L_system_class::set_mi_breakup_rings(double mi1_min,double mi1_max,
+							 double Radius, long Number,bool Middle)
+{
+	// set all to normal value
+	for( int i=0; i<Size_X; i++)
+	for( int j=0; j<Size_Y; j++)
+	{
+		MI1_A[i][j] = mi1_max;
+		MI1_B[i][j] = mi1_max;
+	}
+
+	//------------------------------
+	// discs  xxx
+	//------------------------------
+	for(int i=0;i<Number;i++)
+	{
+
+	int x = random( Size_X );
+	int y = random( Size_Y );
+
+	if( Middle )
+	{
+		x = 0.5*Size_X;
+		y = 0.5*Size_Y;
+	}
+
+	for( int i1=x-Radius; i1<x+Radius; i1++)
+	for( int j1=y-Radius; j1<y+Radius; j1++)
+	if( sqrt(pow(i1-x,2)+pow(j1-y,2)) < Radius )
+	if( i1 >= 0 && i1 < Size_X )
+	if( j1 >= 0 && j1 < Size_Y )
+		MI1_A[i1][j1] = mi1_min;
+
+	}
+
+	for(int i=0;i<Number;i++)
+	{
+
+	int x = random( Size_X );
+	int y = random( Size_Y );
+
+	if( Middle )
+	{
+		x = 0.5*Size_X;
+		y = 0.5*Size_Y;
+	}
+
+	for( int i1=x-Radius; i1<x+Radius; i1++)
+	for( int j1=y-Radius; j1<y+Radius; j1++)
+	if( sqrt(pow(i1-x,2)+pow(j1-y,2)) < Radius )
+	if( i1 >= 0 && i1 < Size_X )
+	if( j1 >= 0 && j1 < Size_Y )
+		MI1_B[i1][j1] = mi1_min;
+
+	}
+
+}
+
+//---------------------------------------------------------------------------
+void TP1A_2L_system_class::set_mi_breakup_landscape(double R, double p, double I,
+		double min, double max, int Target_Variable)
+{
+	double r;
+
+	if( Target_Variable == 0 )
+		set_initial_coupling();
+	else
+	for( int i=0; i<Size_X; i++)
+	for( int j=0; j<Size_Y; j++)
+	{
+		if( Target_Variable == 1 ) 	{ MI1_A[i][j] = max; MI1_B[i][j] = max; }
+		if( Target_Variable == 2 ) 	{ MI2_A[i][j] = max; MI2_B[i][j] = max; }
+	}
+
+	for( int i=0; i<Size_X; i++)
+	for( int j=0; j<Size_Y; j++)
+	{
+
+	if( random( 100000 ) / 100000.0 < p )
+	for( int i1=i;i1<= i+2*R;i1++)
+	for( int j1=j;j1<= j+2*R;j1++)
+	if( i1 < Size_X && j1 < Size_Y )
+	{
+		r = sqrt( std::pow(i1-R-i,2) + std::pow(j1-R-j,2) );
+		if( r <= R )
+		{
+			if( Target_Variable == 0 ) 	{ DX_A[i1][j1] -= I*(R-r)/R; DY_A[i1][j1] -= I*(R-r)/R; }
+			if( Target_Variable == 1 ) 	MI1_A[i1][j1] -= I*(R-r)/R;
+			if( Target_Variable == 2 ) 	MI2_A[i1][j1] -= I*(R-r)/R;
+		}
+
+			if( Target_Variable == 0 ) 	{ if( DX_A[i1][j1] < min ) DX_A[i1][j1] = min; if( DY_A[i1][j1] < min ) DY_A[i1][j1] = min; }
+			if( Target_Variable == 1 ) 	if( MI1_A[i1][j1] < min ) MI1_A[i1][j1] = min;
+			if( Target_Variable == 2 ) 	if( MI2_A[i1][j1] < min ) MI2_A[i1][j1] = min;
+	}
+
+	if( random( 100000 ) / 100000.0 < p )
+	for( int i1=i;i1<= i+2*R;i1++)
+	for( int j1=j;j1<= j+2*R;j1++)
+	if( i1 < Size_X && j1 < Size_Y )
+	{
+		r = sqrt( std::pow(i1-R-i,2) + std::pow(j1-R-j,2) );
+		if( r <= R )
+		{
+			if( Target_Variable == 0 ) 	{ DX_B[i1][j1] -= I*(R-r)/R; DY_B[i1][j1] -= I*(R-r)/R; }
+			if( Target_Variable == 1 ) 	MI1_B[i1][j1] -= I*(R-r)/R;
+			if( Target_Variable == 2 ) 	MI2_B[i1][j1] -= I*(R-r)/R;
+		}
+
+			if( Target_Variable == 0 ) 	{ if( DX_B[i1][j1] < min ) DX_B[i1][j1] = min; if( DY_B[i1][j1] < min ) DY_B[i1][j1] = min; }
+			if( Target_Variable == 1 ) 	if( MI1_B[i1][j1] < min ) MI1_B[i1][j1] = min;
+			if( Target_Variable == 2 ) 	if( MI2_B[i1][j1] < min ) MI2_B[i1][j1] = min;
+	}
+
+	}
+
+
+
+}
+
+//---------------------------------------------------------------------------
+void TP1A_2L_system_class::clear_system()
+{
+	// Clear grid
+	for( int i=0; i<Size_X; i++)
+	for( int j=0; j<Size_Y; j++)
+	{
+		V1_A[i][j] = 0;
+		V2_A[i][j] = 0;
+		W1_A[i][j] = 0;
+		W2_A[i][j] = 0;
+
+		V1_B[i][j] = 0;
+		V2_B[i][j] = 0;
+		W1_B[i][j] = 0;
+		W2_B[i][j] = 0;
+
+		CUSTOM_VALUE[i][j] = 0;
+	}
+
+	// signals history
+    for(long i=0;i<Middle_Row_Voltage_History.size();i++)
+    Middle_Row_Voltage_History[i].DVector.clear();
+
+}
+
+//---------------------------------------------------------------------------
+
+void TP1A_2L_system_class::refresh_VW_matrices() // to avoid drop in efficiency
+{
+    // Clear grid
+	for( int i=0; i<Size_X; i++)
+	for( int j=0; j<Size_Y; j++)
+	if( DX_A[i][j]==0 && DY_A[i][j]==0 )
+	{
+		V1_A[i][j] = 0;
+		V2_A[i][j] = 0;
+		W1_A[i][j] = 0;
+		W2_A[i][j] = 0;
+	}
+
+	for( int i=0; i<Size_X; i++)
+	for( int j=0; j<Size_Y; j++)
+	if( DX_B[i][j]==0 && DY_B[i][j]==0 )
+	{
+		V1_B[i][j] = 0;
+		V2_B[i][j] = 0;
+		W1_B[i][j] = 0;
+		W2_B[i][j] = 0;
+	}
+
+}
+
+//---------------------------------------------------------------------------
+
+void TP1A_2L_system_class::record_potentials()
+{
+	int j = Size_Y/2;
+	for( int i=0; i<Size_X; i++)
+		Middle_Row_Voltage_History[i].DVector.push_back(V1_A[i][j]);
+
+	for( int i=0; i<Size_X; i++)
+	for( int j=0; j<Size_Y; j++)
+	{
+		VOLTAGE_HISTORY_A[i][j].DVector.push_back(V1_A[i][j]);
+		VOLTAGE_HISTORY_B[i][j].DVector.push_back(V1_B[i][j]);
+	}
+
+}
+
+//---------------------------------------------------------------------------
+
+int TP1A_2L_system_class::free_tables()
+{
+/*
+	  for( int i=0; i<Size_X; i++)
+	  {
+			free( (double*) ( V1[i] ) );
+			free( (double*) ( V2[i] ) );
+			free( (double*) ( W1[i] ) );
+			free( (double*) ( W2[i] ) );
+			free( (double*) ( DX[i] ) );
+			free( (double*) ( DY[i] ) );
+	  }
+
+	  free( (double**) ( V1 ) );
+	  free( (double**) ( V2 ) );
+	  free( (double**) ( W1 ) );
+	  free( (double**) ( W2 ) );
+	  free( (double**) ( DX ) );
+	  free( (double**) ( DY ) );
+ */
+	return 1;
+}
+//---------------------------------------------------------------------------
+
+void TP1A_2L_system_class::compute_N_steps(int N)
+{
+    for(int n=0;n<N;n++)
+    {
+        calculate_V1_from_V2_fhn();
+        calculate_V2_from_V1_fhn();
+        Global_Time = Global_Time + dt;
+
+		add_assymetric_modulation();
+		add_current_modulation_1();
+    }
+}
+
+//---------------------------------------------------------------------------
+
+void TP1A_2L_system_class::calculate_V2_from_V1_fhn()
+{
+//fff21
+
+//&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&//
+//&&&&&&&&&&  1ST LAYER &&&&&&&&&&&&&&&&&//
+//&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&//
+
+	  int i,j,k,l;
+	  double e,r,k1,k2,w = 0.5,xp,yp;
+      double diff_term,s2=dx*dx;
+
+	  // matrix V without boundaries
+	  for( i = 1; i < Size_X - 1; i++ )
+	  for( j = 1; j < Size_Y - 1; j++ )
+	  {
+		diff_term = ( DX_A[i][j]*(V1_A[i-1][j] + V1_A[i+1][j] - 2*V1_A[i][j]) +
+					  DY_A[i][j]*(V1_A[i][j+1] + V1_A[i][j-1] - 2*V1_A[i][j]) +
+					  COUPLING[i][j]*(V1_B[i][j]-V1_A[i][j])  ) / s2;
+
+		// Forward Euler
+		V2_A[i][j] = V1_A[i][j] + dt*
+			( -k_par*V1_A[i][j]*(V1_A[i][j]-a)*(V1_A[i][j]-1)-V1_A[i][j]*W1_A[i][j]+ diff_term);
+
+        W2_A[i][j] = W1_A[i][j] + dt*
+        (eps+(MI1_A[i][j]*W1_A[i][j])/(MI2_A[i][j]+V1_A[i][j]))*
+             (-W1_A[i][j]-k_par*V1_A[i][j]*(V1_A[i][j]-b-1));
+      }
+
+    //---------------------------------------------------------------------
+    if( Boundary_Conditions == 0 ) // zero flux
+	//---------------------------------------------------------------------
+    {
+      // "X" side
+      for( i = 1; i < Size_X - 1; i++ )
+      {
+            V2_A[i][0] = V2_A[i][1];
+            V2_A[i][Size_Y-1] = V2_A[i][Size_Y-2];
+
+			W2_A[i][0] = W2_A[i][1];
+            W2_A[i][Size_Y-1] = W2_A[i][Size_Y-2];
+      }
+
+      // "Y" side
+      for( j = 1; j < Size_Y - 1; j++ )
+      {
+			V2_A[0][j] = V2_A[1][j];
+			V2_A[Size_X-1][j] = V2_A[Size_Y-2][j];
+
+			W2_A[0][j] = W2_A[j][1];
+			W2_A[Size_X-1][j] = W2_A[Size_Y-2][j];
+	  }
+    }
+
+    //---------------------------------------------------------------------
+    if( Boundary_Conditions == 1 ) // periodic conditions
+    //---------------------------------------------------------------------
+    {
+      // "X" 0 side
+      i = 0;
+	  for( j = 1; j < Size_Y - 1; j++ )
+      {
+		diff_term = ( DX_A[i][j]*(V1_A[Size_X-1][j] + V1_A[1][j] -   2*V1_A[i][j]) +
+					  DY_A[i][j]*(V1_A[i][j+1]      + V1_A[i][j-1] - 2*V1_A[i][j]) )/s2;
+
+        // Forward Euler
+        V2_A[i][j] = V1_A[i][j] + dt*
+			( -k_par*V1_A[i][j]*(V1_A[i][j]-a)*(V1_A[i][j]-1)-V1_A[i][j]*W1_A[i][j]+ diff_term);
+
+        W2_A[i][j] = W1_A[i][j] + dt*
+		(eps+(MI1_A[i][j]*W1_A[i][j])/(MI2_A[i][j]+V1_A[i][j]))*
+			 (-W1_A[i][j]-k_par*V1_A[i][j]*(V1_A[i][j]-b-1));
+      }
+
+      // "X" Size_X-1 side
+	  i = Size_X-1;
+      for( j = 1; j < Size_Y - 1; j++ )
+      {
+		diff_term = ( DX_A[i][j]*(V1_A[Size_X-2][j] + V1_A[0][j] -  2*V1_A[i][j]) +
+                      DY_A[i][j]*(V1_A[i][j+1]      + V1_A[i][j-1]- 2*V1_A[i][j]) )/s2;
+
+        // Forward Euler
+        V2_A[i][j] = V1_A[i][j] + dt*
+            ( -k_par*V1_A[i][j]*(V1_A[i][j]-a)*(V1_A[i][j]-1)-V1_A[i][j]*W1_A[i][j]+ diff_term);
+
+        W2_A[i][j] = W1_A[i][j] + dt*
+        (eps+(MI1_A[i][j]*W1_A[i][j])/(MI2_A[i][j]+V1_A[i][j]))*
+             (-W1_A[i][j]-k_par*V1_A[i][j]*(V1_A[i][j]-b-1));
+      }
+
+      // "Y" 0 side
+      j = 0;
+      for( i = 1; i < Size_X - 1; i++ )
+      {
+        diff_term = ( DX_A[i][j]*(V1_A[i-1][j]       + V1_A[i+1][j] -  2*V1_A[i][j]) +
+                      DY_A[i][j]*(V1_A[i][Size_Y-1]  + V1_A[i][1]   - 2*V1_A[i][j]) )/s2;
+
+		// Forward Euler
+        V2_A[i][j] = V1_A[i][j] + dt*
+            ( -k_par*V1_A[i][j]*(V1_A[i][j]-a)*(V1_A[i][j]-1)-V1_A[i][j]*W1_A[i][j]+ diff_term);
+
+        W2_A[i][j] = W1_A[i][j] + dt*
+		(eps+(MI1_A[i][j]*W1_A[i][j])/(MI2_A[i][j]+V1_A[i][j]))*
+			 (-W1_A[i][j]-k_par*V1_A[i][j]*(V1_A[i][j]-b-1));
+	  }
+
+      // "Y" Size_Y-1 side
+      j = Size_Y-1;
+      for( i = 1; i < Size_X - 1; i++ )
+	  {
+        diff_term = ( DX_A[i][j]*(V1_A[i-1][j]       + V1_A[i+1][j] -  2*V1_A[i][j]) +
+                      DY_A[i][j]*(V1_A[i][Size_Y-2]  + V1_A[i][0]   - 2*V1_A[i][j]) )/s2;
+
+        // Forward Euler
+        V2_A[i][j] = V1_A[i][j] + dt*
+            ( -k_par*V1_A[i][j]*(V1_A[i][j]-a)*(V1_A[i][j]-1)-V1_A[i][j]*W1_A[i][j]+ diff_term);
+
+        W2_A[i][j] = W1_A[i][j] + dt*
+		(eps+(MI1_A[i][j]*W1_A[i][j])/(MI2_A[i][j]+V1_A[i][j]))*
+             (-W1_A[i][j]-k_par*V1_A[i][j]*(V1_A[i][j]-b-1));
+      }
+
+	}
+
+	// corners
+	V2_A[0][0]=V2_A[1][1];
+	V2_A[Size_X-1][0]=V2_A[Size_X-2][1];
+	V2_A[0][Size_Y-1]=V2_A[1][Size_Y-2];
+	V2_A[Size_X-1][Size_X-1]=V2_A[Size_X-2][Size_X-2];
+
+//&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&//
+//&&&&&&&&&&  2ND LAYER &&&&&&&&&&&&&&&&&//
+//&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&//
+
+      // matrix V without boundaries
+	  for( i = 1; i < Size_X - 1; i++ )
+	  for( j = 1; j < Size_Y - 1; j++ )
+      {
+        diff_term = ( DX_B[i][j]*(V1_B[i-1][j] + V1_B[i+1][j] - 2*V1_B[i][j]) +
+                      DY_B[i][j]*(V1_B[i][j+1] + V1_B[i][j-1] - 2*V1_B[i][j]) +
+					  COUPLING[i][j]*(V1_A[i][j]-V1_B[i][j])  ) / s2;
+
+        // Forward Euler
+        V2_B[i][j] = V1_B[i][j] + dt*
+			( -k_par*V1_B[i][j]*(V1_B[i][j]-a)*(V1_B[i][j]-1)-V1_B[i][j]*W1_B[i][j]+ diff_term);
+
+        W2_B[i][j] = W1_B[i][j] + dt*
+		(eps+(MI1_B[i][j]*W1_B[i][j])/(MI2_B[i][j]+V1_B[i][j]))*
+             (-W1_B[i][j]-k_par*V1_B[i][j]*(V1_B[i][j]-b-1));
+      }
+
+    //---------------------------------------------------------------------
+    if( Boundary_Conditions == 0 ) // zero flux
+    //---------------------------------------------------------------------
+    {
+      // "X" side
+      for( i = 1; i < Size_X - 1; i++ )
+      {
+            V2_B[i][0] = V2_B[i][1];
+            V2_B[i][Size_Y-1] = V2_B[i][Size_Y-2];
+
+			W2_B[i][0] = W2_B[i][1];
+            W2_B[i][Size_Y-1] = W2_B[i][Size_Y-2];
+      }
+
+	  // "Y" side
+      for( j = 1; j < Size_Y - 1; j++ )
+      {
+			V2_B[0][j] = V2_B[1][j];
+			V2_B[Size_X-1][j] = V2_B[Size_Y-2][j];
+
+			W2_B[0][j] = W2_B[j][1];
+			W2_B[Size_X-1][j] = W2_B[Size_Y-2][j];
+	  }
+    }
+
+	//---------------------------------------------------------------------
+    if( Boundary_Conditions == 1 ) // periodic conditions
+    //---------------------------------------------------------------------
+    {
+      // "X" 0 side
+      i = 0;
+      for( j = 1; j < Size_Y - 1; j++ )
+      {
+		diff_term = ( DX_B[i][j]*(V1_B[Size_X-1][j] + V1_B[1][j] -   2*V1_B[i][j]) +
+                      DY_B[i][j]*(V1_B[i][j+1]      + V1_B[i][j-1] - 2*V1_B[i][j]) )/s2;
+
+        // Forward Euler
+        V2_B[i][j] = V1_B[i][j] + dt*
+			( -k_par*V1_B[i][j]*(V1_B[i][j]-a)*(V1_B[i][j]-1)-V1_B[i][j]*W1_B[i][j]+ diff_term);
+
+        W2_B[i][j] = W1_B[i][j] + dt*
+		(eps+(MI1_B[i][j]*W1_B[i][j])/(MI2_B[i][j]+V1_B[i][j]))*
+             (-W1_B[i][j]-k_par*V1_B[i][j]*(V1_B[i][j]-b-1));
+	  }
+
+      // "X" Size_X-1 side
+      i = Size_X-1;
+      for( j = 1; j < Size_Y - 1; j++ )
+      {
+        diff_term = ( DX_B[i][j]*(V1_B[Size_X-2][j] + V1_B[0][j] -  2*V1_B[i][j]) +
+                      DY_B[i][j]*(V1_B[i][j+1]      + V1_B[i][j-1]- 2*V1_B[i][j]) )/s2;
+
+        // Forward Euler
+        V2_B[i][j] = V1_B[i][j] + dt*
+			( -k_par*V1_B[i][j]*(V1_B[i][j]-a)*(V1_B[i][j]-1)-V1_B[i][j]*W1_B[i][j]+ diff_term);
+
+        W2_B[i][j] = W1_B[i][j] + dt*
+        (eps+(MI1_B[i][j]*W1_B[i][j])/(MI2_B[i][j]+V1_B[i][j]))*
+             (-W1_B[i][j]-k_par*V1_B[i][j]*(V1_B[i][j]-b-1));
+      }
+
+      // "Y" 0 side
+      j = 0;
+      for( i = 1; i < Size_X - 1; i++ )
+      {
+        diff_term = ( DX_B[i][j]*(V1_B[i-1][j]       + V1_B[i+1][j] -  2*V1_B[i][j]) +
+                      DY_B[i][j]*(V1_B[i][Size_Y-1]  + V1_B[i][1]   - 2*V1_B[i][j]) )/s2;
+
+		// Forward Euler
+        V2_B[i][j] = V1_B[i][j] + dt*
+            ( -k_par*V1_B[i][j]*(V1_B[i][j]-a)*(V1_B[i][j]-1)-V1_B[i][j]*W1_B[i][j]+ diff_term);
+
+		W2_B[i][j] = W1_B[i][j] + dt*
+		(eps+(MI1_B[i][j]*W1_B[i][j])/(MI2_B[i][j]+V1_B[i][j]))*
+			 (-W1_B[i][j]-k_par*V1_B[i][j]*(V1_B[i][j]-b-1));
+      }
+
+      // "Y" Size_Y-1 side
+      j = Size_Y-1;
+      for( i = 1; i < Size_X - 1; i++ )
+	  {
+        diff_term = ( DX_B[i][j]*(V1_B[i-1][j]       + V1_B[i+1][j] -  2*V1_B[i][j]) +
+                      DY_B[i][j]*(V1_B[i][Size_Y-2]  + V1_B[i][0]   - 2*V1_B[i][j]) )/s2;
+
+        // Forward Euler
+        V2_B[i][j] = V1_B[i][j] + dt*
+            ( -k_par*V1_B[i][j]*(V1_B[i][j]-a)*(V1_B[i][j]-1)-V1_B[i][j]*W1_B[i][j]+ diff_term);
+
+        W2_B[i][j] = W1_B[i][j] + dt*
+        (eps+(MI1_B[i][j]*W1_B[i][j])/(MI2_B[i][j]+V1_B[i][j]))*
+             (-W1_B[i][j]-k_par*V1_B[i][j]*(V1_B[i][j]-b-1));
+      }
+
+	}
+	// corners
+	V2_B[0][0]=V2_B[1][1];
+	V2_B[Size_X-1][0]=V2_B[Size_X-2][1];
+	V2_B[0][Size_Y-1]=V2_B[1][Size_Y-2];
+	V2_B[Size_X-1][Size_X-1]=V2_B[Size_X-2][Size_X-2];
+
+}
+
+//------------------------------------------------------------------------------
+
+void TP1A_2L_system_class::calculate_V1_from_V2_fhn()
+{
+//fff12
+
+//&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&//
+//&&&&&&&&&&  1st LAYER &&&&&&&&&&&&&&&&&//
+//&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&//
+	  int i,j,k,l;
+	  double e,r,k1,k2,w = 0.5,xp,yp;
+	  double diff_term,s2=dx*dx;
+
+      // matrix V without boundaries
+      for( i = 1; i < Size_X - 1; i++ )
+      for( j = 1; j < Size_Y - 1; j++ )
+      {
+
+        diff_term = ( DX_A[i][j]*(V2_A[i-1][j] + V2_A[i+1][j] - 2*V2_A[i][j]) +
+                      DY_A[i][j]*(V2_A[i][j+1] + V2_A[i][j-1] - 2*V2_A[i][j]) +
+					  COUPLING[i][j]*(V2_B[i][j]-V2_A[i][j])  ) / s2;
+
+		// Forward Euler
+        V1_A[i][j] = V2_A[i][j] + dt*
+            ( -k_par*V2_A[i][j]*(V2_A[i][j]-a)*(V2_A[i][j]-1)-V2_A[i][j]*W2_A[i][j]+ diff_term);
+
+        W1_A[i][j] = W2_A[i][j] + dt*
+        (eps+(MI1_A[i][j]*W2_A[i][j])/(MI2_A[i][j]+V2_A[i][j]))*
+             (-W2_A[i][j]-k_par*V2_A[i][j]*(V2_A[i][j]-b-1));
+      }
+
+    //---------------------------------------------------------------------
+	if( Boundary_Conditions == 0 ) // zero flux
+    //---------------------------------------------------------------------
+    {
+      // "X" side
+      for( i = 1; i < Size_X - 1; i++ )
+      {
+            V1_A[i][0] = V1_A[i][1];
+			V1_A[i][Size_Y-1] = V1_A[i][Size_Y-2];
+
+            W1_A[i][0] = W1_A[i][1];
+            W1_A[i][Size_Y-1] = W1_A[i][Size_Y-2];
+      }
+
+      // "Y" side
+      for( j = 1; j < Size_Y - 1; j++ )
+      {
+			V1_A[0][j] = V1_A[1][j];
+			V1_A[Size_X-1][j] = V1_A[Size_Y-2][j];
+
+			W1_A[0][j] = W1_A[j][1];
+			W1_A[Size_X-1][j] = W1_A[Size_Y-2][j];
+      }
+    }
+
+    //---------------------------------------------------------------------
+    if( Boundary_Conditions == 1 ) // periodic conditions
+    //---------------------------------------------------------------------
+    {
+      // "X" 0 side
+	  i = 0;
+      for( j = 1; j < Size_Y - 1; j++ )
+      {
+
+		diff_term = ( DX_A[i][j]*(V2_A[Size_X-1][j] + V2_A[1][j] -   2*V2_A[i][j]) +
+                      DY_A[i][j]*(V2_A[i][j+1]      + V2_A[i][j-1] - 2*V2_A[i][j]) )/s2;
+
+		// Forward Euler
+		V1_A[i][j] = V2_A[i][j] + dt*
+            ( -k_par*V2_A[i][j]*(V2_A[i][j]-a)*(V2_A[i][j]-1)-V2_A[i][j]*W2_A[i][j]+ diff_term);
+
+        W1_A[i][j] = W2_A[i][j] + dt*
+        (eps+(MI1_A[i][j]*W2_A[i][j])/(MI2_A[i][j]+V2_A[i][j]))*
+             (-W2_A[i][j]-k_par*V2_A[i][j]*(V2_A[i][j]-b-1));
+      }
+
+      // "X" Size_X-1 side
+      i = Size_X-1;
+      for( j = 1; j < Size_Y - 1; j++ )
+	  {
+
+        diff_term = ( DX_A[i][j]*(V2_A[Size_X-2][j] + V2_A[0][j] -  2*V2_A[i][j]) +
+                      DY_A[i][j]*(V2_A[i][j+1]      + V2_A[i][j-1]- 2*V2_A[i][j]) )/s2;
+
+        // Forward Euler
+        V1_A[i][j] = V2_A[i][j] + dt*
+            ( -k_par*V2_A[i][j]*(V2_A[i][j]-a)*(V2_A[i][j]-1)-V2_A[i][j]*W2_A[i][j]+ diff_term);
+
+        W1_A[i][j] = W2_A[i][j] + dt*
+		(eps+(MI1_A[i][j]*W2_A[i][j])/(MI2_A[i][j]+V2_A[i][j]))*
+             (-W2_A[i][j]-k_par*V2_A[i][j]*(V2_A[i][j]-b-1));
+      }
+
+      // "Y" 0 side
+      j = 0;
+      for( i = 1; i < Size_X - 1; i++ )
+	  {
+		diff_term = ( DX_A[i][j]*(V2_A[i-1][j]       + V2_A[i+1][j] -  2*V2_A[i][j]) +
+                      DY_A[i][j]*(V2_A[i][Size_Y-1]  + V2_A[i][1]   - 2*V2_A[i][j]) )/s2;
+
+        // Forward Euler
+        V1_A[i][j] = V2_A[i][j] + dt*
+            ( -k_par*V2_A[i][j]*(V2_A[i][j]-a)*(V2_A[i][j]-1)-V2_A[i][j]*W2_A[i][j]+ diff_term);
+
+        W1_A[i][j] = W2_A[i][j] + dt*
+        (eps+(MI1_A[i][j]*W2_A[i][j])/(MI2_A[i][j]+V2_A[i][j]))*
+             (-W2_A[i][j]-k_par*V2_A[i][j]*(V2_A[i][j]-b-1));
+      }
+
+      // "Y" Size_Y-1 side
+      j = Size_Y-1;
+      for( i = 1; i < Size_X - 1; i++ )
+      {
+        diff_term = ( DX_A[i][j]*(V2_A[i-1][j]       + V2_A[i+1][j] -  2*V2_A[i][j]) +
+                      DY_A[i][j]*(V2_A[i][Size_Y-2]  + V2_A[i][0]   - 2*V2_A[i][j]) )/s2;
+
+        // Forward Euler
+        V1_A[i][j] = V2_A[i][j] + dt*
+			( -k_par*V2_A[i][j]*(V2_A[i][j]-a)*(V2_A[i][j]-1)-V2_A[i][j]*W2_A[i][j]+ diff_term);
+
+		W1_A[i][j] = W2_A[i][j] + dt*
+		(eps+(MI1_A[i][j]*W2_A[i][j])/(MI2_A[i][j]+V2_A[i][j]))*
+			 (-W2_A[i][j]-k_par*V2_A[i][j]*(V2_A[i][j]-b-1));
+	  }
+	}
+
+	// corners
+	V1_A[0][0]=V1_A[1][1];
+	V1_A[Size_X-1][0]=V1_A[Size_X-2][1];
+	V1_A[0][Size_Y-1]=V1_A[1][Size_Y-2];
+	V1_A[Size_X-1][Size_X-1]=V1_A[Size_X-2][Size_X-2];
+
+//&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&//
+//&&&&&&&&&&  2nd LAYER &&&&&&&&&&&&&&&&&//
+//&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&//
+
+      // matrix V without boundaries
+      for( i = 1; i < Size_X - 1; i++ )
+      for( j = 1; j < Size_Y - 1; j++ )
+      {
+
+        diff_term = ( DX_B[i][j]*(V2_B[i-1][j] + V2_B[i+1][j] - 2*V2_B[i][j]) +
+                      DY_B[i][j]*(V2_B[i][j+1] + V2_B[i][j-1] - 2*V2_B[i][j]) +
+					  COUPLING[i][j]*(V2_A[i][j]-V2_B[i][j])  ) / s2;
+
+        // Forward Euler
+        V1_B[i][j] = V2_B[i][j] + dt*
+            ( -k_par*V2_B[i][j]*(V2_B[i][j]-a)*(V2_B[i][j]-1)-V2_B[i][j]*W2_B[i][j]+ diff_term);
+
+        W1_B[i][j] = W2_B[i][j] + dt*
+        (eps+(MI1_B[i][j]*W2_B[i][j])/(MI2_B[i][j]+V2_B[i][j]))*
+             (-W2_B[i][j]-k_par*V2_B[i][j]*(V2_B[i][j]-b-1));
+      }
+
+    //---------------------------------------------------------------------
+	if( Boundary_Conditions == 0 ) // zero flux
+    //---------------------------------------------------------------------
+    {
+      // "X" side
+      for( i = 1; i < Size_X - 1; i++ )
+	  {
+            V1_B[i][0] = V1_B[i][1];
+			V1_B[i][Size_Y-1] = V1_B[i][Size_Y-2];
+
+            W1_B[i][0] = W1_B[i][1];
+            W1_B[i][Size_Y-1] = W1_B[i][Size_Y-2];
+      }
+
+      // "Y" side
+      for( j = 1; j < Size_Y - 1; j++ )
+      {
+			V1_B[0][j] = V1_B[1][j];
+			V1_B[Size_X-1][j] = V1_B[Size_Y-2][j];
+
+			W1_B[0][j] = W1_B[j][1];
+			W1_B[Size_X-1][j] = W1_B[Size_Y-2][j];
+      }
+    }
+
+    //---------------------------------------------------------------------
+    if( Boundary_Conditions == 1 ) // periodic conditions
+    //---------------------------------------------------------------------
+    {
+      // "X" 0 side
+	  i = 0;
+      for( j = 1; j < Size_Y - 1; j++ )
+      {
+
+        diff_term = ( DX_B[i][j]*(V2_B[Size_X-1][j] + V2_B[1][j] -   2*V2_B[i][j]) +
+					  DY_B[i][j]*(V2_B[i][j+1]      + V2_B[i][j-1] - 2*V2_B[i][j]) )/s2;
+
+		// Forward Euler
+        V1_B[i][j] = V2_B[i][j] + dt*
+            ( -k_par*V2_B[i][j]*(V2_B[i][j]-a)*(V2_B[i][j]-1)-V2_B[i][j]*W2_B[i][j]+ diff_term);
+
+        W1_B[i][j] = W2_B[i][j] + dt*
+        (eps+(MI1_B[i][j]*W2_B[i][j])/(MI2_B[i][j]+V2_B[i][j]))*
+             (-W2_B[i][j]-k_par*V2_B[i][j]*(V2_B[i][j]-b-1));
+      }
+
+      // "X" Size_X-1 side
+      i = Size_X-1;
+      for( j = 1; j < Size_Y - 1; j++ )
+      {
+
+        diff_term = ( DX_B[i][j]*(V2_B[Size_X-2][j] + V2_B[0][j] -  2*V2_B[i][j]) +
+                      DY_B[i][j]*(V2_B[i][j+1]      + V2_B[i][j-1]- 2*V2_B[i][j]) )/s2;
+
+        // Forward Euler
+        V1_B[i][j] = V2_B[i][j] + dt*
+            ( -k_par*V2_B[i][j]*(V2_B[i][j]-a)*(V2_B[i][j]-1)-V2_B[i][j]*W2_B[i][j]+ diff_term);
+
+        W1_B[i][j] = W2_B[i][j] + dt*
+		(eps+(MI1_B[i][j]*W2_B[i][j])/(MI2_B[i][j]+V2_B[i][j]))*
+             (-W2_B[i][j]-k_par*V2_B[i][j]*(V2_B[i][j]-b-1));
+      }
+
+      // "Y" 0 side
+	  j = 0;
+      for( i = 1; i < Size_X - 1; i++ )
+	  {
+        diff_term = ( DX_B[i][j]*(V2_B[i-1][j]       + V2_B[i+1][j] -  2*V2_B[i][j]) +
+                      DY_B[i][j]*(V2_B[i][Size_Y-1]  + V2_B[i][1]   - 2*V2_B[i][j]) )/s2;
+
+        // Forward Euler
+        V1_B[i][j] = V2_B[i][j] + dt*
+            ( -k_par*V2_B[i][j]*(V2_B[i][j]-a)*(V2_B[i][j]-1)-V2_B[i][j]*W2_B[i][j]+ diff_term);
+
+        W1_B[i][j] = W2_B[i][j] + dt*
+        (eps+(MI1_B[i][j]*W2_B[i][j])/(MI2_B[i][j]+V2_B[i][j]))*
+             (-W2_B[i][j]-k_par*V2_B[i][j]*(V2_B[i][j]-b-1));
+      }
+
+      // "Y" Size_Y-1 side
+      j = Size_Y-1;
+      for( i = 1; i < Size_X - 1; i++ )
+      {
+        diff_term = ( DX_B[i][j]*(V2_B[i-1][j]       + V2_B[i+1][j] -  2*V2_B[i][j]) +
+                      DY_B[i][j]*(V2_B[i][Size_Y-2]  + V2_B[i][0]   - 2*V2_B[i][j]) )/s2;
+
+        // Forward Euler
+        V1_B[i][j] = V2_B[i][j] + dt*
+			( -k_par*V2_B[i][j]*(V2_B[i][j]-a)*(V2_B[i][j]-1)-V2_B[i][j]*W2_B[i][j]+ diff_term);
+
+		W1_B[i][j] = W2_B[i][j] + dt*
+		(eps+(MI1_B[i][j]*W2_B[i][j])/(MI2_B[i][j]+V2_B[i][j]))*
+			 (-W2_B[i][j]-k_par*V2_B[i][j]*(V2_B[i][j]-b-1));
+	  }
+	}
+
+	// corners
+	V1_B[0][0]=V1_B[1][1];
+	V1_B[Size_X-1][0]=V1_B[Size_X-2][1];
+	V1_B[0][Size_Y-1]=V1_B[1][Size_Y-2];
+	V1_B[Size_X-1][Size_X-1]=V1_B[Size_X-2][Size_X-2];
+}
+
+//------------------------------------------------------------------------------
+
+void TP1A_2L_system_class::create_spiral(int Slice_Plane) // 0-xy,
+{
+	double wn,r,fi,phase,x,y,d;
+	double cx,cy;
+	long n;
+
+    // winding number
+    wn = 245.0;
+
+    clear_system();
+
+    cx = Size_X/2;
+    cy = Size_Y/2;
+
+    if( Slice_Plane == 0 ) // spiral wave in XY plane
+    for( int i=0;i<Size_X; i++ )
+    for( int j=0;j<Size_Y; j++ )
+	{
+        // distance from center of the spiral in dx units
+        r = std::sqrt( std::pow(i-cx,2) + std::pow(j-cy,2));
+
+        x = i-cx;
+        y = j-cy;
+
+		if( i-cx != 0.0 )
+        {
+            d = atan(fabs(y/x));
+
+            // 1st quarter
+            if( x >= 0 && y >= 0 )
+                fi = d;
+
+            // 2nd quarter
+            if( x <= 0 && y >= 0 )
+                fi = M_PI - d;
+
+            // 3rd quarter
+            if( x <= 0 && y <= 0 )
+                fi = M_PI + d;
+
+            // 4th quarter
+            if( x >= 0 && y <= 0 )
+                fi = 2.0*M_PI - d;
+        }
+        else
+        {
+            if( j-0.5*Size_Y > 0.0 )
+                 fi = M_PI_2;
+            else
+                 fi = 3.0*M_PI_2;
+        }
+
+        fi += 0.55;
+
+        // find the greatest n such that r > k*fi + 2pi*k*n
+        if(wn*fi!=0)
+            n = floor( (r-wn*fi)/(2.0*M_PI*wn) );
+        else
+			n = 0;
+
+        phase = fabs(r-wn*fi-2.0*wn*M_PI*n)/(2.0*wn*M_PI);
+        int m = (int)((1.0-phase)*(TP1A_APD_Length-2));
+
+		V1_A[i][j] = TP1A_Activation_Variable_APD[m];
+		V2_A[i][j] = TP1A_Activation_Variable_APD[m];
+		W1_A[i][j] = 1*TP1A_Recovery_Variable_APD[m];
+        W2_A[i][j] = 1*TP1A_Recovery_Variable_APD[m];
+    }
+}
+
+//---------------------------------------------------------------------------
+
+int TP1A_2L_system_class::get_color_code(int Source,int X,int Y,int Z,long t)
+{
+	int ptr;
+
+	if( Z == 0 )
+	{
+
+	if( Source == 0 )
+	ptr = 255*(V1_A[X][Y]-Min_Voltage)/(Max_Voltage-Min_Voltage);
+
+	if( Source == 0 && DX_A[X][Y] <= Min_Voltage && DY_A[X][Y] <= 0.1 )
+	ptr = -1;
+
+	if( Source == 1 )
+	ptr = 255-255*(DX_A[X][Y]-Min_Diff)/(2*Max_Diff_X-Min_Diff);
+
+	if( Source == 2 )
+	ptr = 255-255*(DY_A[X][Y]-Min_Diff)/(2*Max_Diff_Y-Min_Diff);
+
+	double max_mi=0.4,min_mi=0;
+
+	if( Source == 3 )
+	ptr = 255-255*(MI1_A[X][Y]-min_mi)/(max_mi-min_mi);
+	if( Source == 4 )
+	ptr = 255-255*(MI2_A[X][Y]-min_mi)/(max_mi-min_mi);
+
+	if( Source == 5 )
+	ptr = 255-255*(CUSTOM_VALUE[X][Y]-Min_Custom_Value)/(Max_Custom_Value-Min_Custom_Value);
+
+	if( Source == 5 && DY_A[X][Y] <= 0.1 )
+	ptr = -1;
+
+	if( Source == 6 )
+	ptr = 255-255*(COUPLING[X][Y]-Min_Diff)/(Max_Diff_X-Min_Diff);
+
+	if( Source == 7 )
+	if( t >= 0 && t < VOLTAGE_HISTORY_A[X][Y].DVector.size() )
+	ptr = 255*(VOLTAGE_HISTORY_A[X][Y].DVector[t] -Min_Voltage)/(Max_Voltage-Min_Voltage);
+
+	if (ptr > 255) ptr = 255;
+
+	}
+
+	if( Z == 1 )
+	{
+
+	if( Source == 0 )
+	ptr = 255*(V1_B[X][Y]-Min_Voltage)/(Max_Voltage-Min_Voltage);
+
+	if( Source == 0 && DX_B[X][Y] <= Min_Voltage && DY_B[X][Y] <= 0.1 )
+	ptr = -1;
+
+	if( Source == 1 )
+	ptr = 255-255*(DX_B[X][Y]-Min_Diff)/(2*Max_Diff_X-Min_Diff);
+
+	if( Source == 2 )
+	ptr = 255-255*(DY_B[X][Y]-Min_Diff)/(2*Max_Diff_Y-Min_Diff);
+
+	double max_mi=0.4,min_mi=0;
+
+	if( Source == 3 )
+	ptr = 255-255*(MI1_B[X][Y]-min_mi)/(max_mi-min_mi);
+	if( Source == 4 )
+	ptr = 255-255*(MI2_B[X][Y]-min_mi)/(max_mi-min_mi);
+
+	if( Source == 5 )
+	ptr = 255-255*(CUSTOM_VALUE[X][Y]-Min_Custom_Value)/(Max_Custom_Value-Min_Custom_Value);
+
+	if( Source == 5 && DY_B[X][Y] <= 0.1 )
+	ptr = -1;
+
+	if( Source == 6 )
+	ptr = 255-255*(COUPLING[X][Y]-Min_Diff)/(Max_Diff_X-Min_Diff);
+
+	if( Source == 7 )
+	if( t >= 0 && t < VOLTAGE_HISTORY_B[X][Y].DVector.size() )
+	ptr = 255*(VOLTAGE_HISTORY_B[X][Y].DVector[t] -Min_Voltage)/(Max_Voltage-Min_Voltage);
+
+	if (ptr > 255) ptr = 255;
+	}
+
+	return ptr;
+}
+
+//---------------------------------------------------------------------------
+
+void TP1A_2L_system_class::stimulate_node(int X,int Y,int Z)
+{
+	if( X >= 0 && X < TWO_DIM_SYSTEM_X_SIZE )
+	if( Y >= 0 && Y < TWO_DIM_SYSTEM_Y_SIZE )
+	{
+
+	if( Z==0 ){
+		V1_A[X][Y]=1;
+		V2_A[X][Y]=1;
+	}
+	if( Z==1 ){
+		V1_B[X][Y]=1;
+		V2_B[X][Y]=1;
+	}
+
+	}
+}
+//---------------------------------------------------------------------------
+
+void TP1A_2L_system_class::compute_ISIs(long Node_Position)
+{
+    ISIs_Node_Ptr_X = Node_Position;
+    ISIs.clear();
+    double Threshold = 0.5;
+    double prev=0,curr=0;
+    int df= Middle_Row_Voltage_History[Node_Position].DVector.size();
+    if( Node_Position >= 0 && Node_Position < Middle_Row_Voltage_History.size() )
+    for(long t=1;t<(signed)Middle_Row_Voltage_History[Node_Position].DVector.size()-1;t++)
+    if( Middle_Row_Voltage_History[Node_Position].DVector[t-1] < Threshold )
+    if( Middle_Row_Voltage_History[Node_Position].DVector[t+1] > Threshold )
+    {
+        curr = t;
+        if( prev != 0 )
+            ISIs.push_back(curr-prev);
+        prev = curr;
+        t+=5; // forward jump in time
+    }
+}
+
+//---------------------------------------------------------------------------
+
+int TP1A_2L_system_class::save_object(ofstream* dfile)
+{
+	dfile[0] << "version_2L_v3 ";
+
+	dfile[0] << Size_X << " ";
+	dfile[0] << Size_Y << " ";
+
+	for(long i=0;i<Size_X;i++)
+	for(long j=0;j<Size_Y;j++)
+	{
+		dfile[0] << V1_A[i][j] << " ";
+		dfile[0] << V2_A[i][j] << " ";
+		dfile[0] << W1_A[i][j] << " ";
+		dfile[0] << W2_A[i][j] << " ";
+		dfile[0] << DX_A[i][j] << " ";
+		dfile[0] << DY_A[i][j] << " ";
+		dfile[0] << MI1_A[i][j] << " ";
+		dfile[0] << MI2_A[i][j] << " ";
+
+		dfile[0] << V1_B[i][j] << " ";
+		dfile[0] << V2_B[i][j] << " ";
+		dfile[0] << W1_B[i][j] << " ";
+		dfile[0] << W2_B[i][j] << " ";
+		dfile[0] << DX_B[i][j] << " ";
+		dfile[0] << DY_B[i][j] << " ";
+		dfile[0] << MI1_B[i][j] << " ";
+		dfile[0] << MI2_B[i][j] << " ";
+
+		dfile[0] << COUPLING[i][j] << " ";
+
+		dfile[0] << VOLTAGE_HISTORY_A[i][j].DVector.size() << " ";
+		for(long t=0;t<VOLTAGE_HISTORY_A[i][j].DVector.size();t++)
+		dfile[0] << VOLTAGE_HISTORY_A[i][j].DVector[t] << " ";
+
+		dfile[0] << VOLTAGE_HISTORY_B[i][j].DVector.size() << " ";
+		for(long t=0;t<VOLTAGE_HISTORY_B[i][j].DVector.size();t++)
+		dfile[0] << VOLTAGE_HISTORY_B[i][j].DVector[t] << " ";
+	}
+
+
+    dfile[0] << Middle_Row_Voltage_History.size() << " ";
+    dfile[0] << Middle_Row_Voltage_History[0].DVector.size() << " ";
+	for(long i=0;i<Middle_Row_Voltage_History.size();i++)
+    for(long j=0;j<Middle_Row_Voltage_History[i].DVector.size();j++)
+    dfile[0] <<  Middle_Row_Voltage_History[i].DVector[j] << " ";
+
+    dfile[0] << ISIs.size() << " ";
+    for(long i=0;i<ISIs.size();i++)
+    dfile[0] <<  ISIs[i] << " ";
+
+
+    dfile[0] << ISIs_Node_Ptr_X << " ";
+
+    dfile[0] << Min_Voltage << " ";
+	dfile[0] << Max_Voltage << " ";
+    dfile[0] << Boundary_Conditions << " ";
+
+    // parameters
+    dfile[0] << k_par << " ";
+    dfile[0] << a << " ";
+    dfile[0] << eps << " ";
+    dfile[0] << mi1 << " ";
+    dfile[0] << mi2 << " ";
+	dfile[0] << b << " ";
+
+    dfile[0] << dx << " ";
+	dfile[0] << dt << " ";
+
+	dfile[0] << Global_Time << " ";
+
+}
+
+//---------------------------------------------------------------------------
+
+int TP1A_2L_system_class::load_object(ifstream* dfile)
+{
+	char string[2000];
+
+	dfile[0] >> string;
+
+	if( !strcmp(string,"version_2L") )
+	{
+	free_tables();
+	dfile[0] >> Size_X;
+	dfile[0] >> Size_Y;
+
+	if( Size_X != TWO_DIM_SYSTEM_X_SIZE ||
+		Size_Y != TWO_DIM_SYSTEM_Y_SIZE )
+	{
+		ShowMessage("Incorrect system dimensions");
+		return -1;
+	}
+
+	allocate_tables();
+	long S;
+	double v;
+
+	for(long i=0;i<Size_X;i++)
+	for(long j=0;j<Size_Y;j++)
+	{
+		dfile[0] >> V1_A[i][j];
+		dfile[0] >> V2_A[i][j];
+		dfile[0] >> W1_A[i][j];
+		dfile[0] >> W2_A[i][j];
+		dfile[0] >> DX_A[i][j];
+		dfile[0] >> DY_A[i][j];
+		dfile[0] >> MI1_A[i][j];
+		dfile[0] >> MI2_A[i][j];
+
+		dfile[0] >> V1_B[i][j];
+		dfile[0] >> V2_B[i][j];
+		dfile[0] >> W1_B[i][j];
+		dfile[0] >> W2_B[i][j];
+		dfile[0] >> DX_B[i][j];
+		dfile[0] >> DY_B[i][j];
+		dfile[0] >> MI1_B[i][j];
+		dfile[0] >> MI2_B[i][j];
+
+		dfile[0] >> COUPLING[i][j];
+		dfile[0] >> S;
+		for(long t=0;t<S;t++)
+		{
+			dfile[0] >> v;
+			VOLTAGE_HISTORY_A[i][j].DVector.push_back(v);
+		}
+	}
+
+	long S1,S2;
+	double tmp;
+	dfile[0] >> S1;
+	dfile[0] >> S2;
+
+	vector_of_doubles D;
+	D.DVector.clear();
+	D.DVector.assign(S2,tmp);
+	Middle_Row_Voltage_History.clear();
+	Middle_Row_Voltage_History.assign(S1,D);
+	for(long i=0;i<Middle_Row_Voltage_History.size();i++)
+	for(long j=0;j<Middle_Row_Voltage_History[i].DVector.size();j++)
+	dfile[0] >>  Middle_Row_Voltage_History[i].DVector[j];
+
+    dfile[0] >> S1;
+    ISIs.assign(S1,tmp);
+    for(long i=0;i<ISIs.size();i++)
+    dfile[0] >>  ISIs[i];
+
+
+    dfile[0] >> ISIs_Node_Ptr_X;
+
+    dfile[0] >> Min_Voltage;
+    dfile[0] >> Max_Voltage;
+    dfile[0] >> Boundary_Conditions;
+
+    // parameters
+    dfile[0] >> k_par;
+    dfile[0] >> a;
+    dfile[0] >> eps;
+    dfile[0] >> mi1;
+    dfile[0] >> mi2;
+    dfile[0] >> b;
+
+    dfile[0] >> dx;
+	dfile[0] >> dt;
+
+    dfile[0] >> Global_Time;
+
+    ///////////////
+
+    return 1;
+
+	} // version_2
+
+	if( !strcmp(string,"version_2L_v3") )
+	{
+	free_tables();
+	dfile[0] >> Size_X;
+	dfile[0] >> Size_Y;
+
+	if( Size_X != TWO_DIM_SYSTEM_X_SIZE ||
+		Size_Y != TWO_DIM_SYSTEM_Y_SIZE )
+	{
+		ShowMessage("Incorrect system dimensions");
+		return -1;
+	}
+
+	allocate_tables();
+	long S;
+	double v;
+
+	for(long i=0;i<Size_X;i++)
+	for(long j=0;j<Size_Y;j++)
+	{
+		dfile[0] >> V1_A[i][j];
+		dfile[0] >> V2_A[i][j];
+		dfile[0] >> W1_A[i][j];
+		dfile[0] >> W2_A[i][j];
+		dfile[0] >> DX_A[i][j];
+		dfile[0] >> DY_A[i][j];
+		dfile[0] >> MI1_A[i][j];
+		dfile[0] >> MI2_A[i][j];
+
+		dfile[0] >> V1_B[i][j];
+		dfile[0] >> V2_B[i][j];
+		dfile[0] >> W1_B[i][j];
+		dfile[0] >> W2_B[i][j];
+		dfile[0] >> DX_B[i][j];
+		dfile[0] >> DY_B[i][j];
+		dfile[0] >> MI1_B[i][j];
+		dfile[0] >> MI2_B[i][j];
+
+		dfile[0] >> COUPLING[i][j];
+		dfile[0] >> S;
+		for(long t=0;t<S;t++)
+		{
+			dfile[0] >> v;
+			VOLTAGE_HISTORY_A[i][j].DVector.push_back(v);
+		}
+
+		dfile[0] >> S;
+		for(long t=0;t<S;t++)
+		{
+			dfile[0] >> v;
+			VOLTAGE_HISTORY_B[i][j].DVector.push_back(v);
+		}
+	}
+
+	long S1,S2;
+	double tmp;
+	dfile[0] >> S1;
+	dfile[0] >> S2;
+
+	vector_of_doubles D;
+	D.DVector.clear();
+	D.DVector.assign(S2,tmp);
+	Middle_Row_Voltage_History.clear();
+	Middle_Row_Voltage_History.assign(S1,D);
+	for(long i=0;i<Middle_Row_Voltage_History.size();i++)
+	for(long j=0;j<Middle_Row_Voltage_History[i].DVector.size();j++)
+	dfile[0] >>  Middle_Row_Voltage_History[i].DVector[j];
+
+    dfile[0] >> S1;
+    ISIs.assign(S1,tmp);
+    for(long i=0;i<ISIs.size();i++)
+    dfile[0] >>  ISIs[i];
+
+
+    dfile[0] >> ISIs_Node_Ptr_X;
+
+    dfile[0] >> Min_Voltage;
+    dfile[0] >> Max_Voltage;
+    dfile[0] >> Boundary_Conditions;
+
+    // parameters
+    dfile[0] >> k_par;
+    dfile[0] >> a;
+    dfile[0] >> eps;
+    dfile[0] >> mi1;
+    dfile[0] >> mi2;
+    dfile[0] >> b;
+
+    dfile[0] >> dx;
+    dfile[0] >> dt;
+
+    dfile[0] >> Global_Time;
+
+    ///////////////
+
+    return 1;
+
+	} // version_3
+
+
+}
+
+//---------------------------------------------------------------------------
+
+void TP1A_2L_system_class::add_assymetric_modulation()
+{
+	if( Add_Assymetric_Modulation )
+	{
+	double Modulation;
+
+	double t1 = floor(Global_Time/Asm_Length)*Asm_Length;
+	double t2 = (floor(Global_Time/Asm_Length)+1)*Asm_Length;
+
+	if( Global_Time < t1 + Asm_Ratio*Asm_Length)
+	Modulation = Asm_Amplitude*(Global_Time-t1)/(Asm_Ratio*Asm_Length);
+	else
+	Modulation = Asm_Amplitude*(t2-Global_Time)/((1-Asm_Ratio)*Asm_Length);
+
+	long XL = 0.5*Size_X - Central_Region_Relative_Size*Size_X/2;
+	long XR = 0.5*Size_X + Central_Region_Relative_Size*Size_X/2;
+
+	long YL = 0.5*Size_Y - Central_Region_Relative_Size*Size_Y/2;
+	long YR = 0.5*Size_Y + Central_Region_Relative_Size*Size_Y/2;
+
+	for(long i=XL;i<XR;i++)
+	for(long j=YL;j<YR;j++)
+	{
+		if(V1_A[i][j] + Modulation < Max_Voltage )
+		V1_A[i][j] += Modulation;
+		if(V2_A[i][j] + Modulation < Max_Voltage )
+		V2_A[i][j] += Modulation;
+	}
+
+	}
+}
+
+//---------------------------------------------------------------------------
+
+void TP1A_2L_system_class::add_current_modulation_1()
+{
+	if( Add_Current_Modulation_1 )
+	{
+	double Modulation = CM1_Amplitude*sin(2*M_PI/CM1_Length*Global_Time);
+	if( Modulation > 0 )
+	Modulation = 0;
+
+	long XL = 0.5*Size_X - Central_Region_Relative_Size*Size_X/2;
+	long XR = 0.5*Size_X + Central_Region_Relative_Size*Size_X/2;
+
+	long YL = 0.5*Size_Y - Central_Region_Relative_Size*Size_Y/2;
+	long YR = 0.5*Size_Y + Central_Region_Relative_Size*Size_Y/2;
+
+	for(long i=XL;i<XR;i++)
+	for(long j=YL;j<YR;j++)
+	{
+		if(V1_A[i][j] + Modulation < Max_Voltage )
+		V1_A[i][j] += Modulation;
+		if(V2_A[i][j] + Modulation < Max_Voltage )
+		V2_A[i][j] += Modulation;
+	}
+
+	}
+}
+
+//---------------------------------------------------------------------------
+
+void TP1A_2L_system_class::set_initial_coupling()
+{
+	for( int i=0; i<Size_X; i++)
+	for( int j=0; j<Size_Y; j++)
+	{
+		DX_A[i][j] = Max_Diff_X;
+		DY_A[i][j] = Max_Diff_Y;
+		DX_B[i][j] = Max_Diff_X;
+		DY_B[i][j] = Max_Diff_Y;
+	}
+}
+
+//---------------------------------------------------------------------------
+void TP1A_2L_system_class::update_inter_layer_coupling()
+{
+	for( int i=0; i<Size_X; i++)
+	for( int j=0; j<Size_Y; j++)
+		COUPLING[i][j] = Min_Layer_Coupling;
+
+	//------------------------------
+	// discs
+	//------------------------------
+	int Curr_No = 0;
+	while( Curr_No < Layer_Coupling_Disks_Number )
+	{
+
+	Curr_No++;
+	int x = random( Size_X );
+	int y = random( Size_Y );
+
+	for( int i1=x-Layer_Coupling_Disks_Radius; i1<x+Layer_Coupling_Disks_Radius; i1++)
+	for( int j1=y-Layer_Coupling_Disks_Radius; j1<y+Layer_Coupling_Disks_Radius; j1++)
+	if( sqrt(pow(i1-x,2)+pow(j1-y,2)) < Layer_Coupling_Disks_Radius )
+	if( i1 >= 0 && i1 < Size_X )
+	if( j1 >= 0 && j1 < Size_Y )
+	{
+		COUPLING[i1][j1] = Max_Layer_Coupling;
+	}
+
+	} // discs
+
+}
+
+//---------------------------------------------------------------------------
+
+void TP1A_2L_system_class::add_coupling(int Version,bool Add_Rings)
+{
+	//------------------------------
+	// discs
+	//------------------------------
+	if( Version == 1 )
+	{
+	int Curr_No = 0;
+	while( Curr_No < Diff_v1_Number )
+	{
+
+	Curr_No++;
+	int x = random( Size_X );
+	int y = random( Size_Y );
+
+	for( int i1=x-Diff_v1_Radius; i1<x+Diff_v1_Radius; i1++)
+	for( int j1=y-Diff_v1_Radius; j1<y+Diff_v1_Radius; j1++)
+	if( sqrt(pow(i1-x,2)+pow(j1-y,2)) < Diff_v1_Radius )
+	if( i1 >= 0 && i1 < Size_X )
+	if( j1 >= 0 && j1 < Size_Y )
+	{
+		DX_A[i1][j1] = 0;
+		DY_A[i1][j1] = 0;
+	}
+
+	if(Add_Rings)
+	for( int i1=x-Diff_v1_Radius-Ring_v1_Width; i1<x+Diff_v1_Radius+Ring_v1_Width; i1++)
+	for( int j1=y-Diff_v1_Radius-Ring_v1_Width; j1<y+Diff_v1_Radius+Ring_v1_Width; j1++)
+	if( sqrt(pow(i1-x,2)+pow(j1-y,2)) > Diff_v1_Radius )
+	if( sqrt(pow(i1-x,2)+pow(j1-y,2)) < Diff_v1_Radius+Ring_v1_Width )
+	if( i1 >= 0 && i1 < Size_X )
+	if( j1 >= 0 && j1 < Size_Y )
+	{
+		DX_A[i1][j1] = (1.+Ring_v1_PercD/100.)*Max_Diff_X;
+		DY_A[i1][j1] = (1.+Ring_v1_PercD/100.)*Max_Diff_Y;
+	}
+
+	x = random( Size_X );
+	y = random( Size_Y );
+
+	for( int i1=x-Diff_v1_Radius; i1<x+Diff_v1_Radius; i1++)
+	for( int j1=y-Diff_v1_Radius; j1<y+Diff_v1_Radius; j1++)
+	if( sqrt(pow(i1-x,2)+pow(j1-y,2)) < Diff_v1_Radius )
+	if( i1 >= 0 && i1 < Size_X )
+	if( j1 >= 0 && j1 < Size_Y )
+	{
+		DX_B[i1][j1] = 0;
+		DY_B[i1][j1] = 0;
+	}
+
+	if(Add_Rings)
+	for( int i1=x-Diff_v1_Radius-Ring_v1_Width; i1<x+Diff_v1_Radius+Ring_v1_Width; i1++)
+	for( int j1=y-Diff_v1_Radius-Ring_v1_Width; j1<y+Diff_v1_Radius+Ring_v1_Width; j1++)
+	if( sqrt(pow(i1-x,2)+pow(j1-y,2)) > Diff_v1_Radius )
+	if( sqrt(pow(i1-x,2)+pow(j1-y,2)) < Diff_v1_Radius+Ring_v1_Width )
+	if( i1 >= 0 && i1 < Size_X )
+	if( j1 >= 0 && j1 < Size_Y )
+	{
+		DX_B[i1][j1] = (1.+Ring_v1_PercD/100.)*Max_Diff_X;
+		DY_B[i1][j1] = (1.+Ring_v1_PercD/100.)*Max_Diff_Y;
+	}
+
+	}
+
+
+	} // discs
+
+	//------------------------------
+	// lines
+	//------------------------------
+	if( Version == 2 )
+	{
+
+	for(long k=0;k<Lines_No_v1;k++)
+	for(long ypos=Size_X*(100-Line_Perc_Leng_v1)*0.01*0.5;
+			 ypos<Size_X-Size_X*(100-Line_Perc_Leng_v1)*0.01*0.5;
+			 ypos++)
+	{
+		int xpos = (k+1)*Size_Y/Lines_No_v1;
+
+		if( xpos > 0 && xpos < Size_X )
+		if( ypos > 0 && ypos < Size_Y )
+		{
+			DX_A[xpos][ypos] = Line_Perc_D/100.*Max_Diff_X;
+			DY_A[xpos][ypos] = Line_Perc_D/100.*Max_Diff_Y;
+			DX_B[xpos][ypos] = Line_Perc_D/100.*Max_Diff_X;
+			DY_B[xpos][ypos] = Line_Perc_D/100.*Max_Diff_Y;
+		}
+	}
+
+	} // discs
+
+	//------------------------------
+	// central disk
+	//------------------------------
+	if( Version == 3 )
+	{
+
+	for( int i1=Size_X/2-Disk_Radius; i1<Size_X/2+Disk_Radius; i1++)
+	for( int j1=Size_Y/2-Disk_Radius; j1<Size_Y/2+Disk_Radius; j1++)
+	if( sqrt(pow(i1-Size_X/2,2)+pow(j1-Size_Y/2,2)) < Disk_Radius )
+	if( i1 >= 0 && i1 < Size_X )
+	if( j1 >= 0 && j1 < Size_Y )
+	{
+		DX_A[i1][j1] = 0;
+		DY_A[i1][j1] = 0;
+		DX_B[i1][j1] = 0;
+		DY_B[i1][j1] = 0;
+	}
+
+	} //  central disk
+
+}
+
+//---------------------------------------------------------------------------
+
+void TP1A_2L_system_class::stimulate_system(double Cx, double Cy, double Cz)
+{
+	int Radius=5;
+	int Pos_X = Cx*Size_X;
+	int Pos_Y = Cy*Size_Y;
+	int z=0;
+	if( Cz > 0 ) z=1;
+
+	for(int x=Pos_X-Radius;x<=Pos_X+Radius;x++)
+	for(int y=Pos_Y-Radius;y<=Pos_Y+Radius;y++)
+	if(x>=0 && y>=0 && x<Size_X && y<Size_Y)
+	stimulate_node(x,y,z);
+}
+
+//---------------------------------------------------------------------------
+
+void TP1A_2L_system_class::ablate_system(double Cx, double Cy, double Cz)
+{
+	int Radius=4;
+	int Pos_X = Cx*Size_X;
+	int Pos_Y = Cy*Size_Y;
+	double r;
+	int z=0;
+	if( Cz > 0 ) z=1;
+
+	for(int x=Pos_X-Radius;x<=Pos_X+Radius;x++)
+	for(int y=Pos_Y-Radius;y<=Pos_Y+Radius;y++)
+	if(x>=0 && y>=0 && x<Size_X && y<Size_Y)
+	{
+		r = sqrt( pow(x-Pos_X,2) + pow(y-Pos_Y,2) );
+		if( r < Radius )
+		{
+			if( z == 0 )
+			{
+				DX_A[x][y]=0;
+				DY_A[x][y]=0;
+			}
+			if( z == 1 )
+			{
+				DX_B[x][y]=0;
+				DY_B[x][y]=0;
+			}
+		}
+	}
+}
+
+//---------------------------------------------------------------------------
+
+vector <double> TP1A_2L_system_class::calculate_unipolar_voltage_from_surface(int Node_x,long Node_y, long Range)
+{
+	vector <double> unipolar_voltage;
+	double voltage,x,y,r;
+	double Coef_2nd_Layer = 0.5;
+
+	for(long t=0;t<VOLTAGE_HISTORY_A[0][0].DVector.size();t++)
+	{
+
+	voltage=0;
+	for(int i=Node_x-Range;i<(signed)(Node_x+Range);i++)
+	for(int j=Node_y-Range;j<(signed)(Node_y+Range);j++)
+	if( i > 0 && i < Size_X-1 )
+	if( j > 0 && j < Size_Y-1 )
+	if( VOLTAGE_HISTORY_A[i][j].DVector[t+1]-VOLTAGE_HISTORY_A[i][j].DVector[t] > 0 )
+	{
+
+	x =  i - Node_x;
+	y =  j - Node_y;
+	r = std::pow( std::pow(x,2)+std::pow(y,2),1.5);
+
+	// 1st layer
+	if( r >= 2 )
+	voltage +=
+	 (  (VOLTAGE_HISTORY_A[i+1][j].DVector[t]-
+		 VOLTAGE_HISTORY_A[i-1][j].DVector[t] )*x
+		+
+
+		(VOLTAGE_HISTORY_A[i][j+1].DVector[t]-
+		 VOLTAGE_HISTORY_A[i][j-1].DVector[t] )*y
+	 ) / r;
+
+	// 2nd layer
+	if( r >= 2 )
+	voltage += Coef_2nd_Layer*
+	 (  (VOLTAGE_HISTORY_B[i+1][j].DVector[t]-
+		 VOLTAGE_HISTORY_B[i-1][j].DVector[t] )*x
+		+
+
+		(VOLTAGE_HISTORY_B[i][j+1].DVector[t]-
+		 VOLTAGE_HISTORY_B[i][j-1].DVector[t] )*y
+	 ) / r;
+
+
+	} // for all nodes
+
+	unipolar_voltage.push_back(voltage);
+
+	} // through time
+
+	return unipolar_voltage;
+}
+
+//------------------------------------------------------------------------------
+
+bool TP1A_2L_system_class::activity_present_check()
+{
+	bool Activity_Present = false;
+	double Threshold = 0.5;
+
+	for( int i=1; i<Size_X-1; i++)
+	for( int j=1; j<Size_Y-1; j++)
+	if( V1_A[i][j] > Threshold )
+		Activity_Present = true;
+
+	for( int i=1; i<Size_X-1; i++)
+	for( int j=1; j<Size_Y-1; j++)
+	if( V1_B[i][j] > Threshold )
+		Activity_Present = true;
+
+	return Activity_Present;
+}
+
+//------------------------------------------------------------------------------
+
+void TP1A_2L_system_class::add_non_conducting_disk(int X,int Y,int Z,int R)
+{
+	double r;
+
+	for(int x=X-R;x<=X+R;x++)
+	for(int y=Y-R;y<=Y+R;y++)
+	if(x>=0 && y>=0 && x<Size_X && y<Size_Y)
+	{
+		r = sqrt( pow(x-X,2) + pow(y-Y,2) );
+		if( 1) // r <= R )
+		{
+			if( Z == 0 )
+			{
+				DX_A[x][y]=0;
+				DY_A[x][y]=0;
+			}
+			if( Z == 1 )
+			{
+				DX_B[x][y]=0;
+				DY_B[x][y]=0;
+			}
+		}
+	}
+
+}
+
+//------------------------------------------------------------------------------
+
+void TP1A_2L_system_class::add_critical_region(TP1A_2L_system_CR_region_class CR)
+{
+	for(int r=0;r<CR.X.size();r++)
+		add_non_conducting_disk(CR.X[r],CR.Y[r],CR.Layer[r],CR.R[r]);
+}
+
+//------------------------------------------------------------------------------
+
+double TP1A_2L_system_class::get_voltage(int X, int Y, int L)
+{
+	if( L==0 )
+	return V1_A[X][Y];
+	if( L==1 )
+	return V1_B[X][Y];
+}
+
+//------------------------------------------------------------------------------
+
+double TP1A_2L_system_class::get_current(int X, int Y, int L)
+{
+	if( L==0 )
+	return W1_A[X][Y];
+	if( L==1 )
+	return W1_B[X][Y];
+}
+
+//------------------------------------------------------------------------------
+
+void TP1A_2L_system_class::add_mi1_mi2_R_disk(double mi1,double mi2,double R, int Target_Variable)
+{
+	1;
+
+}
+
+//------------------------------------------------------------------------------
+

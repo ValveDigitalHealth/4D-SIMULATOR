@@ -1,0 +1,21 @@
+//---------------------------------------------------------------------------
+
+#include <vcl.h>
+#pragma hdrstop
+
+#include "Rich_Edit_Form.h"
+//---------------------------------------------------------------------------
+#pragma package(smart_init)
+#pragma resource "*.dfm"
+TRichEdit_Form *RichEdit_Form;
+//---------------------------------------------------------------------------
+__fastcall TRichEdit_Form::TRichEdit_Form(TComponent* Owner)
+	: TForm(Owner)
+{
+}
+//---------------------------------------------------------------------------
+void __fastcall TRichEdit_Form::Close_ButtonClick(TObject *Sender)
+{
+    ModalResult = mrOk;
+}
+//---------------------------------------------------------------------------

@@ -1,0 +1,2029 @@
+// Two_Dim_System. ---------------------------------------------------------------------------
+
+
+// zamien savy na binarne !!!
+
+
+#pragma hdrstop
+
+#include "Simulation_System_Class.h"
+//---------------------------------------------------------------------------
+#pragma package(smart_init)
+
+//---------------------------------------------------------------------------
+Simulation_System_Class::Simulation_System_Class()
+{
+	Min_Voltage = 0;
+	Max_Voltage = 1;
+
+	Line_point_A_i = -1;
+	Line_point_A_j = -1;
+	Line_point_B_i = -1;
+	Line_point_B_j = -1;
+
+	Critical_Region_Search_Mode = false;
+
+	Which_System_Dimension = 2; // TWO_LAYER_SYSTEM_DIMENSION;
+
+	if( Which_System_Dimension == 2 )
+	{
+		Dimension_X = TWO_DIM_SYSTEM_X_SIZE;
+		Dimension_Y = TWO_DIM_SYSTEM_Y_SIZE;
+		Dimension_Z = 1;
+		Dimension_T = 1;
+
+		Two_Dim_System.Size_X = Dimension_X;
+		Two_Dim_System.Size_Y = Dimension_Y;
+		Two_Dim_System.allocate_tables();
+	}
+
+	if( Which_System_Dimension == TWO_LAYER_SYSTEM_DIMENSION )
+	{
+		Dimension_X = TWO_DIM_SYSTEM_X_SIZE;
+		Dimension_Y = TWO_DIM_SYSTEM_Y_SIZE;
+		Dimension_Z = 2;
+		Dimension_T = 1;
+
+		Two_Dim_System.Size_X = Dimension_X;
+		Two_Dim_System.Size_Y = Dimension_Y;
+		Two_Dim_System.allocate_tables();
+	}
+
+	if( Which_System_Dimension == 3 )
+	{
+		Dimension_X = THREE_DIM_SYSTEM_X_SIZE;
+		Dimension_Y = THREE_DIM_SYSTEM_Y_SIZE;
+		Dimension_Z = THREE_DIM_SYSTEM_Z_SIZE;
+		Dimension_T = 1;
+
+		Three_Dim_System.Size_X = Dimension_X;
+		Three_Dim_System.Size_Y = Dimension_Y;
+		Three_Dim_System.Size_Z = Dimension_Z;
+		Three_Dim_System.allocate_tables();
+	}
+
+	Boundary_Conditions = 0; // no flux
+
+//    Four_Dim_System.free_tables();
+//    Four_Dim_System.Size_X = Dimension_X;
+//    Four_Dim_System.Size_Y = Dimension_Y;
+//    Four_Dim_System.Size_Z = Dimension_Z;
+//    Four_Dim_System.Size_T = Dimension_T;
+//    Four_Dim_System.allocate_tables();
+
+   CR_Tests_Number=111;
+   CR_Level=2;
+   CR_Number=3;
+   CR_Regions_Overlap=4;
+   Diff_Sizes_CR_Search=5;
+   CR_Test_Time=6;
+
+}
+
+//---------------------------------------------------------------------------
+
+Simulation_System_Class::~Simulation_System_Class()
+{
+    //
+}
+
+//---------------------------------------------------------------------------
+
+int Simulation_System_Class::save_object(ofstream* dfile)
+{
+	dfile[0] << " version_4 " << endl; // in progress of adding (sept 2025)
+	dfile[0] << Boundary_Conditions << " ";
+	dfile[0] << Signal_Sampling_Timestep << " ";
+	dfile[0] << Which_System_Dimension << " ";
+
+	dfile[0] << TP1A_2L_system_CR_regions.size() << " ";
+	for(long i=0;i<TP1A_2L_system_CR_regions.size();i++)
+	{
+		dfile[0] << TP1A_2L_system_CR_regions[i].Layer.size() << " ";
+		for(long j=0;j<TP1A_2L_system_CR_regions[i].Layer.size();j++)
+		{
+			dfile[0] << TP1A_2L_system_CR_regions[i].Layer[j] << " ";
+			dfile[0] << TP1A_2L_system_CR_regions[i].X[j] << " ";
+			dfile[0] << TP1A_2L_system_CR_regions[i].Y[j] << " ";
+			dfile[0] << TP1A_2L_system_CR_regions[i].R[j] << " ";
+		}
+	}
+	dfile[0] << TP1A_2D_system_CR_regions.size() << " ";
+	for(long i=0;i<TP1A_2D_system_CR_regions.size();i++)
+	{
+		dfile[0] << TP1A_2D_system_CR_regions[i].X.size() << " ";
+		for(long j=0;j<TP1A_2D_system_CR_regions[i].X.size();j++)
+		{
+			dfile[0] << TP1A_2D_system_CR_regions[i].X[j] << " ";
+			dfile[0] << TP1A_2D_system_CR_regions[i].Y[j] << " ";
+			dfile[0] << TP1A_2D_system_CR_regions[i].R[j] << " ";
+		}
+	}
+
+   dfile[0] << CR_Tests_Number << " ";
+   dfile[0] << CR_Level << " ";
+   dfile[0] << CR_Number << " ";
+   dfile[0] << CR_Regions_Overlap << " ";
+   dfile[0] << Diff_Sizes_CR_Search << " ";
+   dfile[0] << CR_Test_Time << " ";
+
+	dfile[0] << Min_Voltage << " ";
+	dfile[0] << Max_Voltage << " ";
+
+  //!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+	if( Which_System_Dimension == 2 )
+	{
+
+	Two_Dim_System.save_object(dfile);
+
+	for(long i=0;i<Two_Dim_System.Size_X;i++)
+	for(long j=0;j<Two_Dim_System.Size_Y;j++)
+	{
+		dfile[0] << VOLTAGE_HISTORY[i][j].DVector.size() << " ";
+		for(long t=0;t<VOLTAGE_HISTORY[i][j].DVector.size();t++)
+		dfile[0] << VOLTAGE_HISTORY[i][j].DVector[t] << " ";
+
+		dfile[0] << PHASE[i][j].DVector.size() << " ";
+		for(long t=0;t<PHASE[i][j].DVector.size();t++)
+		dfile[0] << PHASE[i][j].DVector[t] << " ";
+	}
+
+	dfile[0] << VOLTAGE_HISTORY_Time_Axis_ms.size() << " ";
+	for(long i=0;i<VOLTAGE_HISTORY_Time_Axis_ms.size();i++)
+	dfile[0] <<  VOLTAGE_HISTORY_Time_Axis_ms[i] << " ";
+
+	dfile[0] << ISIs.size() << " ";
+	for(long i=0;i<ISIs.size();i++)
+	dfile[0] <<  ISIs[i] << " ";
+
+	dfile[0] << ISIs_Node_Ptr_X << " ";
+
+	}
+
+	if( Which_System_Dimension == TWO_LAYER_SYSTEM_DIMENSION )
+	Two_L_System.save_object(dfile);
+
+	if( Which_System_Dimension == 3 )
+	Three_Dim_System.save_object(dfile);
+
+//  Four_Dim_System.save_object(dfile);
+}
+//-------------------------------------------------------------------
+
+int Simulation_System_Class::load_object(ifstream* dfile)
+{
+	char string[2000];
+	int tmpint=0;
+	long Size,S,S1;
+	double tmp,v;
+	dfile[0] >> string;
+
+	if( !strcmp(string,"version_4") )  // in progress of adding (sept 2025)
+	{
+
+	dfile[0] >> Boundary_Conditions;
+	dfile[0] >> Signal_Sampling_Timestep;
+	dfile[0] >> Which_System_Dimension;
+
+	dfile[0] >> Size;
+	TP1A_2L_system_CR_region_class Rr;
+	TP1A_2L_system_CR_regions.clear();
+	TP1A_2L_system_CR_regions.assign(Size,Rr);
+	for(long i=0;i<TP1A_2L_system_CR_regions.size();i++)
+	{
+		dfile[0] >> Size;
+		TP1A_2L_system_CR_regions[i].Layer.assign(Size,tmpint);
+		TP1A_2L_system_CR_regions[i].X.assign(Size,tmpint);
+		TP1A_2L_system_CR_regions[i].Y.assign(Size,tmpint);
+		TP1A_2L_system_CR_regions[i].R.assign(Size,tmpint);
+		for(long j=0;j<TP1A_2L_system_CR_regions[i].Layer.size();j++)
+		{
+			dfile[0] >> TP1A_2L_system_CR_regions[i].Layer[j];
+			dfile[0] >> TP1A_2L_system_CR_regions[i].X[j];
+			dfile[0] >> TP1A_2L_system_CR_regions[i].Y[j];
+			dfile[0] >> TP1A_2L_system_CR_regions[i].R[j];
+		}
+	}
+
+	dfile[0] >> Size;
+	Two_D_system_CR_region_class Rrd;
+	TP1A_2D_system_CR_regions.clear();
+	TP1A_2D_system_CR_regions.assign(Size,Rrd);
+	for(long i=0;i<TP1A_2D_system_CR_regions.size();i++)
+	{
+		dfile[0] >> Size;
+		TP1A_2D_system_CR_regions[i].X.assign(Size,tmpint);
+		TP1A_2D_system_CR_regions[i].Y.assign(Size,tmpint);
+		TP1A_2D_system_CR_regions[i].R.assign(Size,tmpint);
+		for(long j=0;j<TP1A_2D_system_CR_regions[i].X.size();j++)
+		{
+			dfile[0] >> TP1A_2D_system_CR_regions[i].X[j];
+			dfile[0] >> TP1A_2D_system_CR_regions[i].Y[j];
+			dfile[0] >> TP1A_2D_system_CR_regions[i].R[j];
+		}
+	}
+
+   dfile[0] >> CR_Tests_Number;
+   dfile[0] >> CR_Level;
+   dfile[0] >> CR_Number;
+   dfile[0] >> CR_Regions_Overlap;
+   dfile[0] >> Diff_Sizes_CR_Search;
+   dfile[0] >> CR_Test_Time;
+
+	dfile[0] >> Min_Voltage;
+	dfile[0] >> Max_Voltage;
+
+  //!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+	if( Which_System_Dimension == 2 )
+	{
+
+	Two_Dim_System.load_object(dfile);
+
+
+	for(long i=0;i<Two_Dim_System.Size_X;i++)
+	for(long j=0;j<Two_Dim_System.Size_Y;j++)
+	{
+		dfile[0] >> S;
+		VOLTAGE_HISTORY[i][j].DVector.clear();
+		for(long t=0;t<S;t++)
+		{
+		dfile[0] >> v;
+		VOLTAGE_HISTORY[i][j].DVector.push_back(v);
+		}
+
+		dfile[0] >> S;
+		PHASE[i][j].DVector.clear();
+		for(long t=0;t<S;t++)
+		{
+		dfile[0] >> v;
+		PHASE[i][j].DVector.push_back(v);
+		}
+	}
+
+	dfile[0] >> S;
+	VOLTAGE_HISTORY_Time_Axis_ms.clear();
+	for(long i=0;i<S;i++)
+	{
+		dfile[0] >> v;
+		VOLTAGE_HISTORY_Time_Axis_ms.push_back(v);
+	}
+
+	dfile[0] >> S;
+    ISIs.clear();
+	for(long i=0;i<S;i++)
+	{
+		dfile[0] >> v;
+		ISIs.push_back(v);
+	}
+
+	dfile[0] >> ISIs_Node_Ptr_X;
+
+	}
+
+	}
+
+}
+
+/*
+	if( Which_System_Dimension == TWO_LAYER_SYSTEM_DIMENSION )
+	Two_L_System.save_object(dfile);
+
+	if( Which_System_Dimension == 3 )
+	Three_Dim_System.save_object(dfile);
+
+  Four_Dim_System.save_object(dfile);
+*/
+
+//-------------------------------------------------------------------
+
+double Simulation_System_Class::get_current_time()
+{
+	if( Which_System_Dimension == 2 )
+	return Two_Dim_System.Global_Time;
+
+	if( Which_System_Dimension == 3 )
+	return Three_Dim_System.Global_Time;
+
+	if( Which_System_Dimension == TWO_LAYER_SYSTEM_DIMENSION )
+	return Two_L_System.Global_Time;
+
+//	if( Which_System_Dimension == 4 )
+//    return Four_Dim_System.Global_Time;
+}
+
+//---------------------------------------------------------------------------
+
+void Simulation_System_Class::compute_N_steps(int N)
+{
+    Two_Dim_System.Boundary_Conditions = Boundary_Conditions;
+	// Three_Dim_System.Boundary_Conditions = Boundary_Conditions;
+//    Four_Dim_System.Boundary_Conditions = Boundary_Conditions;
+
+	if( Which_System_Dimension == 2 )
+	Two_Dim_System.compute_N_steps(N);
+
+	if( Which_System_Dimension == 3 )
+	Three_Dim_System.compute_N_steps(N);
+
+	if( Which_System_Dimension == TWO_LAYER_SYSTEM_DIMENSION )
+	Two_L_System.compute_N_steps(N);
+
+//    if( Which_System_Dimension == 4 )
+//    Four_Dim_System.compute_N_steps(N);
+
+}
+
+//---------------------------------------------------------------------------
+
+void Simulation_System_Class::get_voltage(int x_coord, int y_coord,long t_ptr,double *Voltage,double *Time)
+{
+	Time[0] = 0;
+	Voltage[0] = 0;
+
+	if( t_ptr > 0 && t_ptr < VOLTAGE_HISTORY_Time_Axis_ms.size() )
+	Time[0] = VOLTAGE_HISTORY_Time_Axis_ms[t_ptr];
+
+	if( x_coord >= 0 && x_coord < TWO_DIM_SYSTEM_X_SIZE &&
+		y_coord >= 0 && y_coord < TWO_DIM_SYSTEM_Y_SIZE )
+	if( t_ptr > 0 && t_ptr < VOLTAGE_HISTORY[x_coord][y_coord].DVector.size() )
+	Voltage[0] = VOLTAGE_HISTORY[x_coord][y_coord].DVector[t_ptr];
+}
+
+//---------------------------------------------------------------------------
+
+double Simulation_System_Class::get_voltage(int X, int Y)
+{
+	if( Which_System_Dimension == 2 )
+	if( X<0 || X>=Two_Dim_System.Size_X || Y<0 || Y>=Two_Dim_System.Size_Y )
+	return 0;
+	else
+	return Two_Dim_System.V1[X][Y];
+/*
+	if( Which_System_Dimension == 3 )
+	if( X<0 || X>=Three_Dim_System.Size_X || Y<0 || Y>=Three_Dim_System.Size_Y || Z<0 || Z>=Three_Dim_System.Size_Z)
+		return Three_Dim_System.V1[X][Y];
+*/
+
+	return 0;
+}
+
+//------------------------------------------------------------------------------
+
+double Simulation_System_Class::get_variable(int Var_No,int X,int Y,int Z,int T)
+{
+	if( Var_No == 0 )
+	{
+		if( Which_System_Dimension == 2 )
+		return Two_Dim_System.V1[X][Y];
+
+		if( Which_System_Dimension == 3 )
+		return Three_Dim_System.V1[X][Y][Z];
+
+//		if( Which_System_Dimension == TWO_LAYER_SYSTEM_DIMENSION )
+//		return Two_L_System.V1[X][Y][Z];
+	}
+
+	if( Var_No == 1 )
+	{
+		if( Which_System_Dimension == 2 )
+		return Two_Dim_System.W1[X][Y];
+
+		if( Which_System_Dimension == 3 )
+		return Three_Dim_System.W1[X][Y][Z];
+
+//		if( Which_System_Dimension == TWO_LAYER_SYSTEM_DIMENSION )
+//		return Two_L_System.W1[X][Y][Z];
+
+//		if( Which_System_Dimension == 4 )
+//		return Four_Dim_System.W1[X][Y][Z][T];
+	}
+
+}
+
+//---------------------------------------------------------------------------
+void Simulation_System_Class::stimulate_node(int X,int Y,int Z,int T)
+{
+	if( Which_System_Dimension == 2 )
+		Two_Dim_System.stimulate_node(X,Y);
+
+	if( Which_System_Dimension == 3 )
+		Three_Dim_System.stimulate_node(X,Y,Z);
+
+	if( Which_System_Dimension == TWO_LAYER_SYSTEM_DIMENSION )
+		Two_L_System.stimulate_node(X,Y,Z);
+
+//    if( Which_System_Dimension == 4 )
+	//    Four_Dim_System.stimulate_node(X,Y,Z,T);
+}
+//---------------------------------------------------------------------------
+
+void Simulation_System_Class::stimulate_edge(int Which)
+{
+	if( Which_System_Dimension == 2 )
+	{
+		if( Which == 1 )
+		for(int x=1;x<Two_Dim_System.Size_X-1;x++)
+		for(int y=1;y<=5;y++)
+			stimulate_node(x,y,0,0);
+
+		if( Which == 2 )
+		for(int x=1;x<Two_Dim_System.Size_X-1;x++)
+		for(int y=Two_Dim_System.Size_Y-5;y<Two_Dim_System.Size_Y;y++)
+			stimulate_node(x,y,0,0);
+	}
+}
+//---------------------------------------------------------------------------
+
+void Simulation_System_Class::clear_system()
+{
+	if( Which_System_Dimension == 2 )
+	Two_Dim_System.clear_system();
+
+	if( Which_System_Dimension == TWO_LAYER_SYSTEM_DIMENSION )
+	Two_L_System.clear_system();
+
+   if( Which_System_Dimension == 3 )
+   Three_Dim_System.clear_system();
+
+//    if( Which_System_Dimension == 4 )
+//    Four_Dim_System.clear_system();
+}
+
+//---------------------------------------------------------------------------
+
+void Simulation_System_Class::refresh_VW_matrices()
+{
+	if( Which_System_Dimension == 2 )
+	{
+		for( int i=0; i<Two_Dim_System.Size_X; i++)
+		for( int j=0; j<Two_Dim_System.Size_Y; j++)
+		if( Two_Dim_System.DX[i][j]==0 && Two_Dim_System.DY[i][j]==0 )
+		{
+			Two_Dim_System.V1[i][j] = 0;
+			Two_Dim_System.V2[i][j] = 0;
+			Two_Dim_System.W1[i][j] = 0;
+			Two_Dim_System.W2[i][j] = 0;
+		}
+	}
+/*
+	if( Which_System_Dimension == TWO_LAYER_SYSTEM_DIMENSION )
+	Two_L_System.refresh_VW_matrices();
+
+	if( Which_System_Dimension == 3 )
+	Three_Dim_System.refresh_VW_matrices();
+*/
+//	if( Which_System_Dimension == 4 )
+//    Four_Dim_System.clear_system();
+
+}
+
+//---------------------------------------------------------------------------
+
+void Simulation_System_Class::create_spiral(int Slice_Plane) // 0-x,1-y,2-z,3-t
+{
+	if( Which_System_Dimension == 2 )
+	Two_Dim_System.create_spiral(Slice_Plane);
+
+	if( Which_System_Dimension == TWO_LAYER_SYSTEM_DIMENSION )
+	Two_L_System.create_spiral(Slice_Plane);
+
+	if( Which_System_Dimension == 3 )
+	Three_Dim_System.create_spiral(Slice_Plane);
+
+
+/*
+
+	if( Which_System_Dimension == 4 )
+	Four_Dim_System.create_spiral(Slice_Plane);
+*/
+}
+
+//---------------------------------------------------------------------------
+
+int Simulation_System_Class::get_color_code(int Source, int X,int Y,int Z,int T, long Time, int Grid_Spacing,double Cycle_Length_ms)
+{
+	long t = Time;
+
+	if( Which_System_Dimension == 2 )
+	{
+
+	int ptr=-1;
+
+	if( Source == 0 )
+	ptr = 255*(Two_Dim_System.V1[X][Y]-Min_Voltage)/(Max_Voltage-Min_Voltage);
+
+	if( Source == 0 && Two_Dim_System.DX[X][Y] <= Min_Voltage && Two_Dim_System.DY[X][Y] <= 0.1 )
+	ptr = -1;
+
+	if( Source == 1 )
+	ptr = 255-255*(Two_Dim_System.DX[X][Y]-Two_Dim_System.Min_Diff)/(2*Two_Dim_System.Max_Diff_X-Two_Dim_System.Min_Diff);
+
+	if( Source == 2 )
+	ptr = 255-255*(Two_Dim_System.DY[X][Y]-Two_Dim_System.Min_Diff)/(2*Two_Dim_System.Max_Diff_Y-Two_Dim_System.Min_Diff);
+
+	double max_mi=0.4,min_mi=0;
+
+	if( Source == 3 )
+	ptr = 255-255*(Two_Dim_System.get_MI_parameter(1,X,Y)-min_mi)/(max_mi-min_mi);
+	if( Source == 4 )
+	ptr = 255-255*(Two_Dim_System.get_MI_parameter(2,X,Y)-min_mi)/(max_mi-min_mi);
+
+	if( Source == 5 )
+	if( Two_Dim_System.Max_Custom_Value - Two_Dim_System.Min_Custom_Value != 0 )
+	ptr = 255-255*(Two_Dim_System.CUSTOM_VALUE[X][Y]-Two_Dim_System.Min_Custom_Value)/
+		(Two_Dim_System.Max_Custom_Value-Two_Dim_System.Min_Custom_Value);
+	else
+	ptr = 0;
+
+	if( Source == 5 && Two_Dim_System.DY[X][Y] <= 0.1 )
+	ptr = -1;
+
+	if( Source == 6 ) // between layers coupling (here not applicable)
+	ptr = 0;
+
+	if( Source == 7 )
+	{
+		// correct X Y so that it is closest node with recorded potentials
+		X = X - X%Grid_Spacing+1;
+		Y = Y - Y%Grid_Spacing+1;
+
+		if( t >= 0 && t < VOLTAGE_HISTORY[X][Y].DVector.size() )
+		ptr = 255*(VOLTAGE_HISTORY[X][Y].DVector[t] - Min_Voltage)/(Max_Voltage - Min_Voltage);
+	}
+
+	std::vector <double> S1;
+	double ts = 1;
+	if( VOLTAGE_HISTORY_Time_Axis_ms.size() > 3 )
+	ts = VOLTAGE_HISTORY_Time_Axis_ms[2]-VOLTAGE_HISTORY_Time_Axis_ms[1];
+	int BCL_Ptr = Cycle_Length_ms/ts;
+	int Electrogram_Type = 2;
+
+	if( Source == 8 ) // phase map
+	{
+		if( t >= 0 && t < VOLTAGE_HISTORY[X][Y].DVector.size() )
+		{
+
+		// calculate phase if not present
+		if( VOLTAGE_HISTORY[X][Y].DVector.size() != PHASE[X][Y].DVector.size() )
+		{
+			for(long i=0;i<(signed)TWO_DIM_SYSTEM_X_SIZE;i++)
+			for(long j=0;j<(signed)TWO_DIM_SYSTEM_Y_SIZE;j++)
+			{
+				// phase
+				PHASE[i][j].DVector = Numerical_Library_Obj.get_electrogram_phase(
+					&VOLTAGE_HISTORY[i][j].DVector,Electrogram_Type,BCL_Ptr,ts);
+			}
+		}
+
+//		if( PHASE[X][Y].DVector.size()
+		ptr = 255*(PHASE[X][Y].DVector[t] + M_PI)/(2*M_PI);
+
+		}
+	}
+
+	if( Source == 9 ) // MPC
+	ptr = 255*MPCs[X][Y];  // mpc goes from 0 to 1, so no normalization required
+
+	if (ptr > 255) ptr = 255;
+	if (ptr < 0 ) ptr = 0;
+
+
+	return ptr;
+
+	}
+
+/*
+
+	if( Which_System_Dimension == TWO_LAYER_SYSTEM_DIMENSION )
+	return Two_L_System.get_color_code(Source,X,Y,Z,Time);
+
+	if( Which_System_Dimension == 3 )
+	return Three_Dim_System.get_color_code(Source,X,Y,Z);
+
+	if( Which_System_Dimension == 4 )
+	return Four_Dim_System.get_color_code(X,Y,T,T);
+*/
+}
+
+//---------------------------------------------------------------------------
+
+void Simulation_System_Class::record_ECG()
+{
+//	if( Which_System_Dimension == 2 )
+//	Two_Dim_System.record_ECG();
+
+	if( Which_System_Dimension == 3 )
+	Three_Dim_System.record_ECG();
+}
+
+//---------------------------------------------------------------------------
+
+void Simulation_System_Class::record_potentials(int Type,int Grid_Spacing)
+{
+	if( Which_System_Dimension == 2 )
+	{
+
+	double v;
+
+	for( int i=1; i<Two_Dim_System.Size_X; i+=Grid_Spacing)
+	for( int j=1; j<Two_Dim_System.Size_Y; j+=Grid_Spacing)
+	{
+		if( Type == 0 )
+		v = Two_Dim_System.V1[i][j];
+
+		if( Type == 1 )
+		v = get_unipolar_voltage(i,j);
+
+		if( Type == 2 )
+		v = 100*(get_unipolar_voltage(i,j) - get_unipolar_voltage(i,j-Grid_Spacing));
+
+		VOLTAGE_HISTORY[i][j].DVector.push_back(v);
+	}
+
+	VOLTAGE_HISTORY_Time_Axis_ms.push_back(Two_Dim_System.Global_Time);
+
+	}
+
+	if( Which_System_Dimension == TWO_LAYER_SYSTEM_DIMENSION )
+	Two_L_System.record_potentials();
+
+	if( Which_System_Dimension == 3 )
+	Three_Dim_System.record_potentials();
+/*
+	if( Which_System_Dimension == 4 )
+	Four_Dim_System.record_potentials(Type);
+*/
+}
+
+//---------------------------------------------------------------------------
+
+long Simulation_System_Class::get_voltage_history_size()
+{
+	if( Which_System_Dimension == 2 )
+	return VOLTAGE_HISTORY_Time_Axis_ms.size();
+
+	if( Which_System_Dimension == TWO_LAYER_SYSTEM_DIMENSION )
+	return Two_L_System.Middle_Row_Voltage_History[0].DVector.size();
+
+	if( Which_System_Dimension == 3 )
+	return Three_Dim_System.Middle_Row_Voltage_History[0].DVector.size();
+
+/*
+	if( Which_System_Dimension == 4 )
+	return Four_Dim_System.Middle_Row_Voltage_History[0].DVector.size();
+*/
+}
+
+//---------------------------------------------------------------------------
+void Simulation_System_Class::clear_signals_history()
+{
+	if( Which_System_Dimension == 2 )
+	{
+		for( int i=0; i<Two_Dim_System.Size_X; i++)
+		for( int j=0; j<Two_Dim_System.Size_Y; j++)
+		VOLTAGE_HISTORY[i][j].DVector.clear();
+
+		VOLTAGE_HISTORY_Time_Axis_ms.clear();
+	}
+
+	if( Which_System_Dimension == TWO_LAYER_SYSTEM_DIMENSION )
+	for(long k=0;k<Two_L_System.Middle_Row_Voltage_History.size();k++)
+	Two_L_System.Middle_Row_Voltage_History[k].DVector.clear();
+
+	if( Which_System_Dimension == 3 )
+	for(long k=0;k<Three_Dim_System.Middle_Row_Voltage_History.size();k++)
+	Three_Dim_System.Middle_Row_Voltage_History[k].DVector.clear();
+
+	if( Which_System_Dimension == 3 )
+	for( int i=0; i<Three_Dim_System.Size_X; i++)
+	for( int j=0; j<Three_Dim_System.Size_Y; j++)
+	for( int k=0; k<Three_Dim_System.Size_Z; k++)
+		Three_Dim_System.VOLTAGE_HISTORY[i][j][k].DVector.clear();
+/*
+	if( Which_System_Dimension == 3 )
+	for(long k=0;k<Two_Dim_System.Middle_Row_Voltage_History.size();k++)
+	// Three_Dim_System.Middle_Row_Voltage_History[k].DVector.clear();
+
+	if( Which_System_Dimension == 4 )
+	for(long k=0;k<Two_Dim_System.Middle_Row_Voltage_History.size();k++)
+//    Four_Dim_System.Middle_Row_Voltage_History[k].DVector.clear();
+*/
+
+}
+
+//---------------------------------------------------------------------------
+
+long Simulation_System_Class::get_voltage_history_vector_size(int X,int Y)
+{
+	if(X>=0 && X<Two_Dim_System.Size_X && Y >=0 && Y < Two_Dim_System.Size_Y)
+	return VOLTAGE_HISTORY[X][Y].DVector.size();
+}
+
+//---------------------------------------------------------------------------
+
+void Simulation_System_Class::clear_ECG_history()
+{
+///	if( Which_System_Dimension == 2 )
+//	Two_Dim_System.ECG_signal.clear();
+
+	if( Which_System_Dimension == 3 )
+	Three_Dim_System.ECG_signal.clear();
+}
+
+//---------------------------------------------------------------------------
+
+void Simulation_System_Class::stimulate_system(double Cx, double Cy,double Cz)
+{
+	if( Which_System_Dimension == 2 )
+	{
+	int Radius=5;
+	int Pos_X = Cx*Two_Dim_System.Size_X;
+	int Pos_Y = Cy*Two_Dim_System.Size_Y;
+
+	for(int x=Pos_X-Radius;x<=Pos_X+Radius;x++)
+	for(int y=Pos_Y-Radius;y<=Pos_Y+Radius;y++)
+		Two_Dim_System.stimulate_node(x,y);
+	}
+
+/*
+
+	if( Which_System_Dimension == TWO_LAYER_SYSTEM_DIMENSION )
+	Two_L_System.stimulate_system(Cx,Cy,Cz);
+
+	if( Which_System_Dimension == 3 )
+	Three_Dim_System.stimulate_system(Cx,Cy,Cz);
+
+	if( Which_System_Dimension == 4 )
+//    Four_Dim_System.stimulate_system(Cx,Cy);
+*/
+}
+
+//---------------------------------------------------------------------------
+
+void Simulation_System_Class::ablate_system_xy_point(int X,int Y,int Direction)
+{
+	if( Which_System_Dimension == 2 )
+	{
+	if( Direction > 0 )
+	{
+		Two_Dim_System.DX[X][Y]=0;
+		Two_Dim_System.DY[X][Y]=0;
+	}
+	else
+	{
+		Two_Dim_System.DX[X][Y]=Two_Dim_System.Max_Diff_X;
+		Two_Dim_System.DY[X][Y]=Two_Dim_System.Max_Diff_Y;
+	}
+	}
+
+
+/*
+
+	if( Which_System_Dimension == TWO_LAYER_SYSTEM_DIMENSION )
+	Two_L_System.ablate_system_xy_point(X,Y);
+
+	if( Which_System_Dimension == 3 )
+	Three_Dim_System.ablate_system_xy_point(X,Y);
+
+	if( Which_System_Dimension == 4 )
+//    Four_Dim_System.stimulate_system(Cx,Cy);
+*/
+}
+
+//---------------------------------------------------------------------------
+
+void Simulation_System_Class::ablate_system(double Cx, double Cy, double Cz,int Direction)
+{
+	if( Which_System_Dimension == 2 )
+	{
+	int Radius=4;
+	int Pos_X = Cx*Two_Dim_System.Size_X;
+	int Pos_Y = Cy*Two_Dim_System.Size_Y;
+	double r;
+
+	for(int x=Pos_X-Radius;x<=Pos_X+Radius;x++)
+	for(int y=Pos_Y-Radius;y<=Pos_Y+Radius;y++)
+	if(x>=0 && y>=0 && x<Two_Dim_System.Size_X && y<Two_Dim_System.Size_Y)
+	{
+		r = sqrt( pow(x-Pos_X,2) + pow(y-Pos_Y,2) );
+		if( r < Radius )
+		{
+			if( Direction > 0 )
+			{
+				Two_Dim_System.DX[Pos_X][Pos_Y]=0;
+				Two_Dim_System.DY[Pos_X][Pos_Y]=0;
+			}
+		else
+		{
+			Two_Dim_System.DX[Pos_X][Pos_Y] = Two_Dim_System.Max_Diff_X;
+			Two_Dim_System.DY[Pos_X][Pos_Y] = Two_Dim_System.Max_Diff_Y;
+		}
+		}
+	}
+	}
+
+	if( Which_System_Dimension == TWO_LAYER_SYSTEM_DIMENSION )
+	Two_L_System.ablate_system(Cx,Cy,Cz);
+
+	if( Which_System_Dimension == 3 )
+	Three_Dim_System.ablate_system(Cx,Cy,Cz);
+/*
+
+	if( Which_System_Dimension == 4 )
+//    Four_Dim_System.stimulate_system(Cx,Cy);
+*/
+}
+
+//---------------------------------------------------------------------------
+
+void Simulation_System_Class::compute_ISIs_XY(int X, int Y)
+{
+	if( Which_System_Dimension == 2 )
+	{
+/*
+	ISIs.clear();
+	Activations_Positions.clear();
+	double Threshold = 0.5;
+	double prev=0,curr=0;
+	if( X >= 0 && X < Size_X )
+	if( Y >= 0 && Y < Size_Y )
+	for(long t=1;t<(signed)VOLTAGE_HISTORY[X][Y].DVector.size()-1;t++)
+	if( VOLTAGE_HISTORY[X][Y].DVector[t-1] < Threshold )
+	if( VOLTAGE_HISTORY[X][Y].DVector[t+1] > Threshold )
+	{
+		curr = t;
+		Activations_Positions.push_back(curr);
+		if( prev != 0 )
+			ISIs.push_back(curr-prev);
+		prev = curr;
+		t+=5; // forward jump in time
+	}
+*/
+	}
+
+/*
+	if( Which_System_Dimension == TWO_LAYER_SYSTEM_DIMENSION )
+	Two_L_System.compute_ISIs_XY(Node_Position);
+
+	if( Which_System_Dimension == 3 )
+	Three_Dim_System.compute_ISIs_XY(Node_Position);
+*/
+/*
+	if( Which_System_Dimension == 4 )
+	Four_Dim_System.compute_ISIs(Node_Position);
+*/
+}
+
+//---------------------------------------------------------------------------
+
+long Simulation_System_Class::get_ISIs_history_size()
+{
+	return ISIs.size();
+}
+
+//---------------------------------------------------------------------------
+
+double Simulation_System_Class::get_ISI(long Index)
+{
+	return ISIs[Index];
+}
+
+//---------------------------------------------------------------------------
+
+void Simulation_System_Class::set_initial_coupling()
+{
+	for( int i=0; i<Two_Dim_System.Size_X; i++)
+	for( int j=0; j<Two_Dim_System.Size_Y; j++)
+	{
+		Two_Dim_System.DX[i][j] = Max_Diff_X;
+		Two_Dim_System.DY[i][j] = Max_Diff_Y;
+	}
+
+}
+//-------------------------------------------------------------------
+bool Simulation_System_Class::activity_present_check()
+{
+		if( Which_System_Dimension == 2 )
+		return Two_Dim_System.activity_present_check();
+		if( Which_System_Dimension == TWO_LAYER_SYSTEM_DIMENSION )
+		return Two_L_System.activity_present_check();
+		if( Which_System_Dimension == 3 )
+		return Three_Dim_System.activity_present_check();
+	return false;
+}
+//-------------------------------------------------------------------
+
+void Simulation_System_Class::add_critical_region(Two_D_system_CR_region_class CR)
+{
+	for(int r=0;r<CR.X.size();r++)
+		add_non_conducting_disk(CR.X[r],CR.Y[r],0,CR.R[r]);
+}
+
+//------------------------------------------------------------------------------
+
+void Simulation_System_Class::add_non_conducting_disk(int X,int Y,int Z,int R)
+{
+	if( Which_System_Dimension == 2 )
+	{
+
+	double r;
+
+	for(int x=X-R;x<=X+R;x++)
+	for(int y=Y-R;y<=Y+R;y++)
+	if(x>=0 && y>=0 && x<Two_Dim_System.Size_X && y<Two_Dim_System.Size_Y)
+	{
+		r = sqrt( pow(x-X,2) + pow(y-Y,2) );
+		if( 1) // r <= R )
+		{
+				Two_Dim_System.DX[x][y]=0;
+				Two_Dim_System.DY[x][y]=0;
+		}
+	}
+	}
+
+	if( Which_System_Dimension == TWO_LAYER_SYSTEM_DIMENSION )
+	return Two_L_System.add_non_conducting_disk(X,Y,Z,R);
+
+//		if( Which_System_Dimension == 3 )
+//		return Three_Dim_System.add_non_conducting_disk(int Layer,int X,int Y,int R)
+}
+//-------------------------------------------------------------------
+void Simulation_System_Class::add_mi1_mi2_R_disk(double mi1,double mi2,double R, int Target_Variable)
+{
+/*
+	if( Which_System_Dimension == 2 )
+	{
+	// mi1 inner disk area
+	// mi2 outer disk area
+	if( Target_Variable == 0 )
+		set_initial_coupling();
+	else
+	for( int i=0; i<Two_Dim_System.Size_X; i++)
+	for( int j=0; j<Two_Dim_System.Size_Y; j++)
+	{
+		if( Target_Variable == 1 ) 	Two_Dim_System.MI1[i][j] = mi2;
+		if( Target_Variable == 2 ) 	Two_Dim_System.MI2[i][j] = mi2;
+	}
+
+	double r;
+	int X = 0.5*Two_Dim_System.Size_X;
+	int Y = 0.5*Two_Dim_System.Size_Y;
+
+	for(int x=X-R;x<=X+R;x++)
+	for(int y=Y-R;y<=Y+R;y++)
+	if(x>=0 && y>=0 && x<Two_Dim_System.Size_X && y<Two_Dim_System.Size_Y)
+	{
+		r = sqrt( pow(x-X,2) + pow(y-Y,2) );
+		if( r <= R )
+		{
+			if( Target_Variable == 0 ) 	{ Two_Dim_System.DX[x][y] = mi1; Two_Dim_System.DY[x][y] = mi1; }
+			if( Target_Variable == 1 ) 	Two_Dim_System.MI1[x][y] = mi1;
+			if( Target_Variable == 2 ) 	Two_Dim_System.MI2[x][y] = mi1;
+		}
+	}
+	}
+
+	if( Which_System_Dimension == TWO_LAYER_SYSTEM_DIMENSION )
+	return Two_L_System.add_mi1_mi2_R_disk(mi1,mi2,R,Target_Variable);
+*/
+}
+//-------------------------------------------------------------------
+long Simulation_System_Class::get_history_vector_size()
+{
+	return VOLTAGE_HISTORY[1][1].DVector.size();
+}
+//-------------------------------------------------------------------
+
+void Simulation_System_Class::phase_vs_distance_data(long Time_Ptr, long BCL_Ptr,
+		std::vector<double> *Angles,std::vector<double> *Distances, int Algorithm)
+{
+	double distance;
+	VelocityVector_2D CV_Vector_1,CV_Vector_2;
+	double Angle_1_Rad, Angle_2_Rad, MPC;
+	long i1,j1,i2,j2,Comparisons_Number = 100000;
+	long MPC_Comparisons_Number = 10000;
+	bool Take_80_Perc_Flag = true;
+	int Delay = 0;
+
+	Angles[0].clear();
+	Distances[0].clear();
+
+	if( Algorithm == 0 ) // CV vector direction
+	for(long k=1;k<Comparisons_Number;k++)
+	{
+		i1 = Numerical_Library_Obj.getRandomNumber(TWO_DIM_SYSTEM_X_SIZE);
+		j1 = Numerical_Library_Obj.getRandomNumber(TWO_DIM_SYSTEM_Y_SIZE);
+
+		i2 = Numerical_Library_Obj.getRandomNumber(TWO_DIM_SYSTEM_X_SIZE);
+		j2 = Numerical_Library_Obj.getRandomNumber(TWO_DIM_SYSTEM_Y_SIZE);
+
+		CV_Vector_1 = get_conduction_arrow(i1,j1,0,Time_Ptr);
+		Angle_1_Rad = CV_Vector_1.direction;
+
+		CV_Vector_2 = get_conduction_arrow(i2,j2,0,Time_Ptr);
+		Angle_2_Rad = CV_Vector_2.direction;
+
+		distance = std::sqrt( std::pow(i1-i2,2) + std::pow(j1-j2,2) );
+
+		if( CV_Vector_1.amplitude > 0 && CV_Vector_2.amplitude > 0 )
+		{
+			Angles[0].push_back( cos(Angle_1_Rad - Angle_2_Rad) );
+			Distances[0].push_back(distance*Two_Dim_System.dx);
+		}
+	}
+
+	if( Algorithm == 1 ) // activation phase
+	for(long k=1;k<Comparisons_Number;k++)
+	{
+		i1 = Numerical_Library_Obj.getRandomNumber(TWO_DIM_SYSTEM_X_SIZE);
+		j1 = Numerical_Library_Obj.getRandomNumber(TWO_DIM_SYSTEM_Y_SIZE);
+
+		i2 = Numerical_Library_Obj.getRandomNumber(TWO_DIM_SYSTEM_X_SIZE);
+		j2 = Numerical_Library_Obj.getRandomNumber(TWO_DIM_SYSTEM_Y_SIZE);
+
+		if( Time_Ptr > 0 && Time_Ptr < PHASE[i1][j1].DVector.size() && Time_Ptr < PHASE[i2][j2].DVector.size() )
+		{
+
+		Angle_1_Rad = PHASE[i1][j1].DVector[Time_Ptr];
+		Angle_2_Rad = PHASE[i2][j2].DVector[Time_Ptr];
+
+		distance = std::sqrt( std::pow(i1-i2,2) + std::pow(j1-j2,2) );
+
+		if( Angle_1_Rad != 0 && Angle_2_Rad != 0 )
+		{
+			Angles[0].push_back( cos(Angle_1_Rad - Angle_2_Rad) );
+			Distances[0].push_back(distance*Two_Dim_System.dx);
+		}
+		}
+	}
+
+	if( Algorithm == 2 ) // MPC of whole signal
+	{
+
+	long k=1;
+
+	while(k < MPC_Comparisons_Number)
+	{
+		i1 = Numerical_Library_Obj.getRandomNumber(TWO_DIM_SYSTEM_X_SIZE);
+		j1 = Numerical_Library_Obj.getRandomNumber(TWO_DIM_SYSTEM_Y_SIZE);
+
+		i2 = Numerical_Library_Obj.getRandomNumber(TWO_DIM_SYSTEM_X_SIZE);
+		j2 = Numerical_Library_Obj.getRandomNumber(TWO_DIM_SYSTEM_Y_SIZE);
+
+		if( PHASE[i1][j1].DVector.size() > 0 && PHASE[i2][j2].DVector.size() > 0 &&
+			PHASE[i1][j1].DVector.size() == PHASE[i2][j2].DVector.size() &&
+			Two_Dim_System.DX[i1][j1] != 0 && Two_Dim_System.DY[i1][j1] != 0 )
+		{
+
+		distance = std::sqrt( std::pow(i1-i2,2) + std::pow(j1-j2,2) );
+
+		if( distance < 100 )
+		{
+			MPC = Numerical_Library_Obj.get_phase_synchronization(
+				&PHASE[i1][j1].DVector,&PHASE[i2][j2].DVector,1,1,Take_80_Perc_Flag,Delay);
+
+			if( MPC >=0 && MPC < 1 )
+			{
+				k++;
+				Angles[0].push_back( MPC );
+				Distances[0].push_back(distance*Two_Dim_System.dx);
+			}
+		}
+
+		}
+	}
+
+	int df=34;
+
+	}
+}
+
+//-------------------------------------------------------------------
+
+domain_structure Simulation_System_Class::perform_domain_walk(int ci,int cj,long ct,
+	double Direction_Tolerance_Degrees, int Grid_Spacing)
+{
+	bool sth_done = true;
+	domain_structure Domain;
+	int i_c,j_c,t_c;
+	double Direction_Tolerance_Rad = Direction_Tolerance_Degrees/360.0*(2*M_PI);
+
+	// find max id
+	long Domain_Id = get_max_activation_time_id() + 1;
+	if( Domain_Id == 0 ) Domain_Id = 1; // to start from 1
+
+	// mark seed Activation as visited
+	ACTIVATION_TIMINGS_DOMAIN_ID[ci][cj].DVector[ct] = Domain_Id;
+
+	// push seed to Domain
+	Domain.i_coordinates.push_back(ci);
+	Domain.j_coordinates.push_back(cj);
+	Domain.t_coordinates.push_back(ct);
+	Domain.Domain_Id = Domain_Id;
+
+	while(sth_done)
+	{
+
+	sth_done = false;
+
+	for(long k=0;k<Domain.i_coordinates.size();k++)
+	{
+
+	i_c = Domain.i_coordinates[k];
+	j_c = Domain.j_coordinates[k];
+	t_c = Domain.t_coordinates[k];
+
+	// 1. check surrounding nodes for not visited nodes
+	for(int x=-1;x<=1;x++)
+	for(int y=-1;y<=1;y++)
+	if( !(x==0 && y==0) ) // except center
+	if( i_c+x*Grid_Spacing >= 0 && i_c+x*Grid_Spacing < TWO_DIM_SYSTEM_X_SIZE )
+	if( j_c+y*Grid_Spacing >= 0 && j_c+y*Grid_Spacing < TWO_DIM_SYSTEM_Y_SIZE )
+	if( ACTIVATION_TIMINGS_DOMAIN_ID[i_c + x*Grid_Spacing][j_c + y*Grid_Spacing].DVector[t_c] == NOT_VISITED_FLAG )
+	if( Numerical_Library_Obj.directions_similarity_test(
+		VELOCITY_VECTORS_DIRECTION[i_c + x*Grid_Spacing][j_c + y*Grid_Spacing].DVector[t_c],
+		VELOCITY_VECTORS_DIRECTION[i_c                 ][j_c                 ].DVector[t_c], Direction_Tolerance_Rad) )
+	{
+		// assign id
+		ACTIVATION_TIMINGS_DOMAIN_ID[i_c + x*Grid_Spacing][j_c + y*Grid_Spacing].DVector[t_c] = Domain_Id;
+
+		// add to domain
+		Domain.i_coordinates.push_back(i_c + x*Grid_Spacing);
+		Domain.j_coordinates.push_back(j_c + y*Grid_Spacing);
+		Domain.t_coordinates.push_back(t_c);
+
+		sth_done = true;
+	}
+
+	// 2. check back and forth in time for not visited nodes
+	int time_shift;
+	for(int m=1;m<=2;m++)
+	{
+		if( m== 1)
+		time_shift = -1;
+		if( m== 2)
+		time_shift = +1;
+
+	if( t_c + time_shift >= 0 && t_c + time_shift < VELOCITY_VECTORS_DIRECTION[i_c][j_c].DVector.size() )
+	if( ACTIVATION_TIMINGS_DOMAIN_ID[i_c][j_c].DVector[t_c + time_shift ] == NOT_VISITED_FLAG )
+	if( Numerical_Library_Obj.directions_similarity_test(
+		VELOCITY_VECTORS_DIRECTION[i_c][j_c].DVector[t_c + time_shift ],
+		VELOCITY_VECTORS_DIRECTION[i_c][j_c].DVector[t_c], Direction_Tolerance_Rad ) )
+	{
+		// assign id
+		ACTIVATION_TIMINGS_DOMAIN_ID[i_c][j_c].DVector[t_c + time_shift ] = Domain_Id;
+
+		// add to domain
+		Domain.i_coordinates.push_back(i_c);
+		Domain.j_coordinates.push_back(j_c);
+		Domain.t_coordinates.push_back(t_c + time_shift);
+
+		sth_done = true;
+	}
+
+	} // back and forth in time
+
+	} // goingh through all existing elements in domain
+
+	} // while sth done
+
+	return Domain;
+}
+
+//-------------------------------------------------------------------
+
+void Simulation_System_Class::calculate_laminar_events(double Direction_Tolerance_Degrees, int Grid_Spacing)
+{
+	bool sth_done = true;
+	domain_structure Domain;
+	Domains.clear();
+
+	// assign IDs to have same length as activations
+	for(int i=0;i<TWO_DIM_SYSTEM_X_SIZE;i++)
+	for(int j=0;j<TWO_DIM_SYSTEM_Y_SIZE;j++)
+	ACTIVATION_TIMINGS_DOMAIN_ID[i][j].DVector = ACTIVATION_TIMINGS[i][j].DVector;
+
+	// clear flags
+	for(int i=0;i<TWO_DIM_SYSTEM_X_SIZE;i++)
+	for(int j=0;j<TWO_DIM_SYSTEM_Y_SIZE;j++)
+	for(int t=0;t<ACTIVATION_TIMINGS_DOMAIN_ID[i][j].DVector.size();t++)
+	ACTIVATION_TIMINGS_DOMAIN_ID[i][j].DVector[t] = NOT_VISITED_FLAG;
+
+	while(sth_done)
+	{
+		sth_done = false;
+
+		for(int i=0;i<TWO_DIM_SYSTEM_X_SIZE;i++)
+		for(int j=0;j<TWO_DIM_SYSTEM_Y_SIZE;j++)
+		for(int t=0;t<ACTIVATION_TIMINGS_DOMAIN_ID[i][j].DVector.size();t++)
+		if( ACTIVATION_TIMINGS_DOMAIN_ID[i][j].DVector[t] == NOT_VISITED_FLAG )
+		{
+			Domain = perform_domain_walk(i,j,t,Direction_Tolerance_Degrees,Grid_Spacing);
+			Domains.push_back(Domain);
+			sth_done = true;
+		}
+	}
+
+	// delete small domains???
+
+	std::vector<RGBColor> distinctColors = Numerical_Library_Obj.generateDistinctColors(Domains.size());
+
+	// calculate stats
+	for(int d=0;d<Domains.size();d++)
+	{
+
+	// derived parameters
+	Domains[d].xyt_Volume = Domains[d].i_coordinates.size();
+	Domains[d].RGB_Color = distinctColors[d];
+
+	/*
+	Conescutive_Areas.clear();
+	dobule area;
+	for(long t=0;t<t_coordinates.size();t++)
+	{
+		area = 0;
+		for(long t=0;t<t_coordinates.size();t++)
+
+		Conescutive_Areas.push_back(area);
+	}
+	*/
+	}
+
+}
+
+//-------------------------------------------------------------------
+
+long Simulation_System_Class::get_max_activation_time_id()
+{
+	long max_id=-1;
+
+	for(int i=0;i<TWO_DIM_SYSTEM_X_SIZE;i++)
+	for(int j=0;j<TWO_DIM_SYSTEM_Y_SIZE;j++)
+	for(int t=0;t<ACTIVATION_TIMINGS_DOMAIN_ID[i][j].DVector.size();t++)
+	if( ACTIVATION_TIMINGS_DOMAIN_ID[i][j].DVector[t] > max_id )
+	max_id = ACTIVATION_TIMINGS_DOMAIN_ID[i][j].DVector[t];
+
+	return max_id;
+}
+
+//-------------------------------------------------------------------
+
+long Simulation_System_Class::get_domain_ptr(int X,int Y,int Z,long Time_Ptr)
+{
+	long domain_ptr = -1;
+
+	if( Which_System_Dimension == 2 )
+	{
+
+	long domain_id = get_domain_id(X,Y,0,Time_Ptr);
+
+	for(long d=0;d<Domains.size();d++)
+	if( Domains[d].Domain_Id == domain_id )
+	domain_ptr = d;
+
+	}
+
+	return domain_ptr;
+}
+
+//-------------------------------------------------------------------
+
+long Simulation_System_Class::get_domain_id(int X,int Y,int Z,long Time_Ptr)
+{
+	long domain_id=-1;
+
+	if( X > 1 && X < Two_Dim_System.Size_X && Y > 1 && Y < Two_Dim_System.Size_Y )
+	{
+		// find which activation ptr corresponds with time Time
+		long tptr = -1;
+		for(long i=0;i<ACTIVATION_TIMINGS[X][Y].DVector.size();i++)
+		if( ACTIVATION_TIMINGS[X][Y].DVector[i] <= Time_Ptr && Time_Ptr <= ACTIVATION_TIMINGS[X][Y].DVector[i+1] )
+		tptr = i;
+
+		if( tptr >= 0 && tptr < ACTIVATION_TIMINGS_DOMAIN_ID[X][Y].DVector.size() )
+		{
+			domain_id = ACTIVATION_TIMINGS_DOMAIN_ID[X][Y].DVector[tptr];
+		}
+	}
+
+	if( domain_id == -1 )
+	int ere=34;
+
+	return domain_id;
+}
+
+//-------------------------------------------------------------------
+
+void Simulation_System_Class::set_timestep(double Timestep)
+{
+	if( Which_System_Dimension == 2 )
+	Two_Dim_System.dt = Timestep;
+}
+
+//-------------------------------------------------------------------
+
+void Simulation_System_Class::mark_line_point(int i, int j)
+{
+	if( Which_System_Dimension == 2 )
+	{
+
+	// no A B points marked yet
+	if( Line_point_A_i == -1 &&	Line_point_B_i == -1 )
+	{
+	Line_point_A_i = i;
+	Line_point_A_j = j;
+	}
+
+	// A marked and B is not
+	if( Line_point_A_i > 0 && Line_point_B_i == -1 )
+	{
+	Line_point_B_i = i;
+	Line_point_B_j = j;
+	}
+
+	// both A B points marked - just eras them and mark ij as A
+	if( Line_point_A_i > 0 && Line_point_B_i > 0 )
+	{
+	Line_point_A_i = i;
+	Line_point_A_j = j;
+	Line_point_B_i = -1;
+	Line_point_B_j = -1;
+	}
+
+    }
+}
+
+//---------------------------------------------------------------------------
+
+void Simulation_System_Class::recalculate_phase(double BCL_ptr,double Signal_Sampling_ms)
+{
+	if( Which_System_Dimension == 2 )
+	{
+
+	long History_Size = get_history_vector_size();
+	Electrogram E;
+	std::vector<double> S1;
+	double ts = Signal_Sampling_ms,Voltage,Time;
+	if(ts==0) ts = 0.25;
+	int Electrogram_Type = 2;
+
+	// calculate activation timings for subset of simulation mesh elements xxx
+	for(int s1=0;s1<Two_Dim_System.Size_X;s1++)
+	for(int s2=0;s2<Two_Dim_System.Size_Y;s2++)
+	if( VOLTAGE_HISTORY[s1][s2].DVector.size() > 0 )
+	{
+		E.Egm.clear();
+
+		for(long t=2;t<History_Size;t++)
+		{
+			get_voltage(s1,s2,t,&Voltage,&Time);
+			E.Egm.push_back(Voltage);
+		}
+
+		//S1 = Numerical_Library_Obj.recompose_signal( &E.Egm,BCL_ptr,Electrogram_Type);
+		//E.Phase = Numerical_Library_Obj.get_Hilbert_phase_using_convolution_double(&S1,ts);
+
+		PHASE[s1][s2].DVector = Numerical_Library_Obj.get_electrogram_phase(&E.Egm,Electrogram_Type,BCL_ptr,ts);
+
+		ACTIVATION_TIMINGS[s1][s2].DVector =
+			Numerical_Library_Obj.get_activation_timings(&PHASE[s1][s2].DVector);
+	}
+
+	}
+
+}
+
+//---------------------------------------------------------------------------
+
+double Simulation_System_Class::get_phase(int X,int Y,long Time_Ptr)
+{
+	if( Which_System_Dimension == 2 )
+	if( X>=0 && X<Two_Dim_System.Size_X && Y>=0 && Y<Two_Dim_System.Size_Y )
+	if( Time_Ptr >= 0 && Time_Ptr < PHASE[X][Y].DVector.size() )
+	return PHASE[X][Y].DVector[Time_Ptr];
+
+	return 0;
+}
+
+//---------------------------------------------------------------------------
+
+void Simulation_System_Class::set_mi_distribution(double mi1_left,double mi2_left,
+							 double mi1_right,double mi2_right,
+							 double Ratio)
+{
+	if( Which_System_Dimension == 2 )
+	set_mi_distribution( mi1_left, mi2_left,mi1_right, mi2_right,Ratio);
+}
+
+//---------------------------------------------------------------------------
+
+void Simulation_System_Class::get_system_size(int* X,int* Y,int* Z,int* T)
+{
+	if( Which_System_Dimension == 2 )
+	{
+		X[0] = Two_Dim_System.Size_X;
+		Y[0] = Two_Dim_System.Size_Y;
+	}
+}
+
+//---------------------------------------------------------------------------
+
+void Simulation_System_Class::compute_min_max_custom_value()
+{
+	Two_Dim_System.Min_Custom_Value = 100000000;
+	Two_Dim_System.Max_Custom_Value = -100000000;
+
+	for( int i=0; i<Two_Dim_System.Size_X; i++)
+	for( int j=0; j<Two_Dim_System.Size_Y; j++)
+	{
+		if( Two_Dim_System.CUSTOM_VALUE[i][j] < Two_Dim_System.Min_Custom_Value )
+			Two_Dim_System.Min_Custom_Value = Two_Dim_System.CUSTOM_VALUE[i][j];
+		if( Two_Dim_System.CUSTOM_VALUE[i][j] > Two_Dim_System.Max_Custom_Value )
+			Two_Dim_System.Max_Custom_Value = Two_Dim_System.CUSTOM_VALUE[i][j];
+	}
+
+}
+
+//------------------------------------------------------------------------------
+
+double Simulation_System_Class::get_custom_value(double Cx, double Cy)
+{
+	int X = Cx*Two_Dim_System.Size_X;
+	int Y = Cy*Two_Dim_System.Size_Y;
+	if( X>=0 && X < Two_Dim_System.Size_X && Y>=0 && Y < Two_Dim_System.Size_Y )
+	return Two_Dim_System.CUSTOM_VALUE[X][Y];
+	else
+	return 0;
+}
+//-------------------------------------------------------------------
+
+void Simulation_System_Class::calculate_velocity_field(double Cycle_Length_ms, int Grid_Spacing)
+{
+	int Algorithm = 1;
+
+	long History_Size = VOLTAGE_HISTORY[1][1].DVector.size(); //get_history_vector_size();
+	Electrogram E;
+	double ts = Signal_Sampling_Timestep,Voltage,Time;
+	if(ts==0) ts = 0.25;
+
+	int BCL_Ptr = Cycle_Length_ms/ts;
+	int Electrogram_Type = 2;
+	std::vector<double> S1;
+	VelocityVector_2D CV;
+	Point_2D grid[3][3];
+	double timings[3][3];
+
+	// calculate activation timings for subset of simulation mesh elements xxx
+	for(int s1=0;s1<Two_Dim_System.Size_X;s1++)
+	for(int s2=0;s2<Two_Dim_System.Size_Y;s2++)
+	if( VOLTAGE_HISTORY[s1][s2].DVector.size() > 0 )
+	{
+		if( PHASE[s1][s2].DVector.size() == 0 )
+		{
+			E.Egm.clear();
+
+			for(long t=2;t<History_Size;t++)
+			{
+				get_voltage(s1,s2,t,&Voltage,&Time);
+				E.Egm.push_back(Voltage);
+			}
+
+			//S1 = Numerical_Library_Obj.recompose_signal( &E.Egm,BCL_Ptr,Electrogram_Type);
+			//E.Phase = Numerical_Library_Obj.get_Hilbert_phase_using_convolution_double(&S1,ts);
+			PHASE[s1][s2].DVector = Numerical_Library_Obj.get_electrogram_phase(&E.Egm,Electrogram_Type,BCL_Ptr,ts);
+		}
+
+		ACTIVATION_TIMINGS[s1][s2].DVector =
+			Numerical_Library_Obj.get_activation_timings(&PHASE[s1][s2].DVector);
+	}
+
+	double tmp=0;
+	for(int s1=0;s1<Two_Dim_System.Size_X;s1++)
+	for(int s2=0;s2<Two_Dim_System.Size_Y;s2++)
+	{
+		VELOCITY_VECTORS_DIRECTION[s1][s2].DVector.assign( ACTIVATION_TIMINGS[s1][s2].DVector.size(), tmp );
+		VELOCITY_VECTORS_AMPLITUDE[s1][s2].DVector.assign( ACTIVATION_TIMINGS[s1][s2].DVector.size(), tmp );
+	}
+
+
+	//---------------------------------------------------------------------
+	if( Algorithm == 1) // based on local activation times obtained from phase mapping
+	//---------------------------------------------------------------------
+	{
+
+
+	// calculate CV
+	for(int s1=0;s1<Two_Dim_System.Size_X;s1++)
+	for(int s2=0;s2<Two_Dim_System.Size_Y;s2++)
+	if( VOLTAGE_HISTORY[s1][s2].DVector.size() > 0 )
+	{
+
+	for(long t=0;t<(signed)ACTIVATION_TIMINGS[s1][s2].DVector.size();t++)
+	{
+		grid[0][0] = Point_2D(s1-Grid_Spacing,s2-Grid_Spacing);
+		grid[0][1] = Point_2D(s1-Grid_Spacing,s2);
+		grid[0][2] = Point_2D(s1-Grid_Spacing,s2+Grid_Spacing);
+
+		grid[1][0] = Point_2D(s1,s2-Grid_Spacing);
+		grid[1][1] = Point_2D(s1,s2);
+		grid[1][2] = Point_2D(s1,s2+Grid_Spacing);
+
+		grid[2][0] = Point_2D(s1+Grid_Spacing,s2-Grid_Spacing);
+		grid[2][1] = Point_2D(s1+Grid_Spacing,s2);
+		grid[2][2] = Point_2D(s1+Grid_Spacing,s2+Grid_Spacing);
+
+		timings[0][0] = get_closest_timing(s1-Grid_Spacing,s2-Grid_Spacing,ACTIVATION_TIMINGS[s1][s2].DVector[t]);
+		timings[0][1] = get_closest_timing(s1-Grid_Spacing,s2,ACTIVATION_TIMINGS[s1][s2].DVector[t]);
+		timings[0][2] = get_closest_timing(s1-Grid_Spacing,s2+Grid_Spacing,ACTIVATION_TIMINGS[s1][s2].DVector[t]);
+
+		timings[1][0] = get_closest_timing(s1,s2-Grid_Spacing,ACTIVATION_TIMINGS[s1][s2].DVector[t]);
+		timings[1][1] = get_closest_timing(s1,s2,ACTIVATION_TIMINGS[s1][s2].DVector[t]);
+		timings[1][2] = get_closest_timing(s1,s2+Grid_Spacing,ACTIVATION_TIMINGS[s1][s2].DVector[t]);
+
+		timings[2][0] = get_closest_timing(s1+Grid_Spacing,s2-Grid_Spacing,ACTIVATION_TIMINGS[s1][s2].DVector[t]);
+		timings[2][1] = get_closest_timing(s1+Grid_Spacing,s2,ACTIVATION_TIMINGS[s1][s2].DVector[t]);
+		timings[2][2] = get_closest_timing(s1+Grid_Spacing,s2+Grid_Spacing,ACTIVATION_TIMINGS[s1][s2].DVector[t]);
+
+		// check if all timings valid
+		bool invalid_found = false;
+		for(int i=0;i<3;i++)
+		for(int j=0;j<3;j++)
+		if( timings[i][j] < 0 )
+		invalid_found = true;
+
+		if( !invalid_found )
+		{
+			CV = Numerical_Library_Obj.calculateVelocityVector_2D_Grid(grid,timings);
+
+			VELOCITY_VECTORS_DIRECTION[s1][s2].DVector[t] = CV.direction;
+			VELOCITY_VECTORS_AMPLITUDE[s1][s2].DVector[t] = CV.amplitude;
+		}
+	}
+	}
+
+	} // algorithm 1
+/*
+	// randomize (to test how it works for random distrubution
+	double v;
+	for(int s1=0;s1<Size_X;s1++)
+	for(int s2=0;s2<Size_Y;s2++)
+	for(int t=0;t<VELOCITY_VECTORS_DIRECTION[s1][s2].DVector.size();t++)
+	{
+		v = (double)Numerical_Library_Obj.getRandomNumber(10000)/10000.;
+		VELOCITY_VECTORS_DIRECTION[s1][s2].DVector[t] = v*(2*M_PI) - M_PI;
+	}
+*/
+	//---------------------------------------------------------------------
+	if( Algorithm == 2) // based on gradient of voltage
+	//---------------------------------------------------------------------
+	{
+
+	int gradient_range = 3;
+	double vx,vy,time_ptr;
+
+	// calculate CV
+	for(int s1=gradient_range;s1<Two_Dim_System.Size_X-gradient_range;s1++)
+	for(int s2=gradient_range;s2<Two_Dim_System.Size_Y-gradient_range;s2++)
+	if( VOLTAGE_HISTORY[s1][s2].DVector.size() > 0 )
+	{
+		for(long t=0;t<(signed)ACTIVATION_TIMINGS[s1][s2].DVector.size();t++)
+		{
+			time_ptr = ACTIVATION_TIMINGS[s1][s2].DVector[t];
+
+			if( time_ptr > 0 &&
+			time_ptr < VOLTAGE_HISTORY[s1+gradient_range][s2].DVector.size() &&
+			time_ptr < VOLTAGE_HISTORY[s1][s2+gradient_range].DVector.size() &&
+			time_ptr < VOLTAGE_HISTORY[s1-gradient_range][s2].DVector.size() &&
+			time_ptr < VOLTAGE_HISTORY[s1][s2-gradient_range].DVector.size() )
+			{
+				vx = 0.5*(VOLTAGE_HISTORY[s1+gradient_range][s2].DVector[time_ptr] - VOLTAGE_HISTORY[s1-gradient_range][s2].DVector[time_ptr]);
+				vy = 0.5*(VOLTAGE_HISTORY[s1][s2+gradient_range].DVector[time_ptr] - VOLTAGE_HISTORY[s1][s2-gradient_range].DVector[time_ptr]);
+
+				VELOCITY_VECTORS_DIRECTION[s1][s2].DVector[t] = std::atan2(vy,vx);
+				VELOCITY_VECTORS_AMPLITUDE[s1][s2].DVector[t] = std::sqrt( vx*vx + vy*vy );
+			}
+		}
+	}
+
+	} // algorithm 2
+
+}
+
+//---------------------------------------------------------------------------
+
+double Simulation_System_Class::calculate_mpc_map()
+{
+/*
+	for(int s1=0;s1<Size_X;s1++)
+	for(int s2=0;s2<Size_Y;s2++)
+	if( PHASE[s1][s2].DVector.size() == 0 )
+	{
+
+		PHASE[s1][s2].DVector = Numerical_Library_Obj.get_electrogram_phase(&E.Egm,Electrogram_Type,BCL_Ptr,ts);
+
+		ACTIVATION_TIMINGS[s1][s2].DVector =
+			Numerical_Library_Obj.get_activation_timings(&PHASE[s1][s2].DVector);
+	}
+ */
+}
+
+//---------------------------------------------------------------------------
+
+VelocityVector_2D Simulation_System_Class::get_conduction_arrow(int X,int Y,int Z,long Time_Ptr)
+{
+	double amplitude=0, direction=0;
+
+	if( X > 1 && X < Two_Dim_System.Size_X && Y > 1 && Y < Two_Dim_System.Size_Y )
+	{
+		// find which activation ptr corresponds with time Time
+		long tptr = -1;
+		for(long i=0;i<(signed long)ACTIVATION_TIMINGS[X][Y].DVector.size()-1;i++)
+		if( ACTIVATION_TIMINGS[X][Y].DVector[i] <= Time_Ptr && Time_Ptr <= ACTIVATION_TIMINGS[X][Y].DVector[i+1] )
+		tptr = i;
+
+		if( tptr >= 0 )
+		{
+			direction = VELOCITY_VECTORS_DIRECTION[X][Y].DVector[tptr];
+			amplitude = VELOCITY_VECTORS_AMPLITUDE[X][Y].DVector[tptr];
+		}
+	}
+
+	return { amplitude, direction };
+}
+
+//---------------------------------------------------------------------------
+
+double Simulation_System_Class::get_unipolar_voltage(int x_coord, int y_coord)
+{
+	double r,x,y,z,v=0;
+	int Grid_Sampling=2;
+	int Range = 20;
+
+	for(int i=x_coord-Range; i<(signed)x_coord+Range; i+=Grid_Sampling)
+	for(int j=y_coord-Range; j<(signed)y_coord+Range; j+=Grid_Sampling)
+	if( i>0 && i<Two_Dim_System.Size_X-1 )
+	if( j>0 && j<Two_Dim_System.Size_Y-1 )
+	{
+
+	x =  i - x_coord;
+	y =  j - y_coord;
+
+	r = std::pow( std::pow(x,2)+std::pow(y,2),1.5);
+
+	if( r!=0 )
+	v =
+	 (
+	 ( Two_Dim_System.V1[i+1][j]-Two_Dim_System.V1[i-1][j] )*(i - x_coord) +
+	 ( Two_Dim_System.V1[i][j+1]-Two_Dim_System.V1[i][j-1] )*(j - y_coord)
+	  ) / r;
+
+	} // for all nodes
+
+	return v;
+}
+
+//---------------------------------------------------------------------------
+
+void Simulation_System_Class::export_voltage_history(AnsiString Filename,AnsiString Signal_Type)
+{
+	long Signal_Length = VOLTAGE_HISTORY[1][1].DVector.size();
+	double Spatial_Sampling = 2;
+
+	AnsiString FF = Filename + " " + FloatToStr(TWO_DIM_SYSTEM_X_SIZE/Spatial_Sampling) + "x"+ FloatToStr(TWO_DIM_SYSTEM_Y_SIZE/Spatial_Sampling)+"x"+ FloatToStr(Signal_Length) + ".csv";
+	ofstream df(FF.c_str());
+
+	// write size of the 3D matrix
+	if( Signal_Type == "voltage variable" )
+	{
+		for(int x=0;x<(double)TWO_DIM_SYSTEM_X_SIZE;x+=Spatial_Sampling)
+		for(int y=0;y<(double)TWO_DIM_SYSTEM_Y_SIZE;y+=Spatial_Sampling)
+		for(int t=0;t<Signal_Length;t++)
+		{
+			df << (double)((int)(VOLTAGE_HISTORY[x][y].DVector[t]*100))/100 << ",";
+		}
+	}
+
+	df.close();
+}
+
+//-------------------------------------------------------------------
+
+void Simulation_System_Class::clear_grid_egms()
+{
+	Grid_Electrograms.clear();
+}
+
+//-------------------------------------------------------------------
+
+void Simulation_System_Class::add_grid_egm(Electrogram *E)
+{
+	Grid_Electrograms.push_back(E[0]);
+}
+//-------------------------------------------------------------------
+
+double Simulation_System_Class::get_correlation_length(
+		long Start_Ptr,long Stop_Ptr, long BCL_Ptr,
+		double* CL, double* MPC,std::vector<double> *MPCs,std::vector<double> *Distances)
+{
+	if( Start_Ptr >= 0 && Start_Ptr < VOLTAGE_HISTORY_Time_Axis_ms.size() &&
+		Stop_Ptr >= 0 &&  Stop_Ptr  < VOLTAGE_HISTORY_Time_Axis_ms.size() &&
+		VOLTAGE_HISTORY_Time_Axis_ms.size() > 50 )
+	{
+
+	double dist,mpc,Min, Max;
+	double ts = VOLTAGE_HISTORY_Time_Axis_ms[2]-VOLTAGE_HISTORY_Time_Axis_ms[1];
+	double slope_Pearson, intercept_Pearson, Correlation_Length_Pearson=0;
+	double slope_MPC,intercept_MPC,Correlation_Length_MPC=0;
+	long Min_Ptr, Max_Ptr;
+	std::vector<double> Correlation_Vector,logCorr;
+	std::vector <double> Data_Vec1,Data_Vec2;
+	bool Take_80_Perc_Flag = true; // for MPC calcuations
+	int Electrogram_Type = 2; // transmembrane voltage
+	int Delay = 0;
+
+	if( ts != 0 )
+	{
+
+	double Corr_Step_Size = 2; // parameter used in calculating cross-correlation
+	double Corr_Steps_Number = 1.0 / Corr_Step_Size * 90.0/ts; // parameter used in calculating cross-correlation
+
+	// if Phase vector is empty, calcualte phases for all egms AND filtered egm for classic correlation
+	std::vector <double> S1;
+	if( Grid_Electrograms[0].Phase.size() == 0 )
+	{
+
+	for(long d1=0;d1<(signed)Grid_Electrograms.size();d1++)
+	{
+		// phase
+		//S1 = Numerical_Library_Obj.recompose_signal( &Grid_Electrograms[d1].Egm,BCL_Ptr,Electrogram_Type);
+		//Grid_Electrograms[d1].Phase = Numerical_Library_Obj.get_Hilbert_phase_using_convolution_double(&S1,ts);
+
+		Grid_Electrograms[d1].Phase = Numerical_Library_Obj.
+			get_electrogram_phase(&Grid_Electrograms[d1].Egm,Electrogram_Type,BCL_Ptr,ts);
+	}
+
+	}
+
+	Corrs.clear();
+	MPCs[0].clear();
+	Distances[0].clear();
+
+	//---------------------------------------------------------------
+	for(long d1=0;d1<(signed)Grid_Electrograms.size();d1++)
+	for(long d2=0;d2<(signed)Grid_Electrograms.size();d2++)
+	if( d1<d2 )
+	//---------------------------------------------------------------
+	{
+		dist = std::sqrt(std::pow(Grid_Electrograms[d1].x - Grid_Electrograms[d2].x,2 ) +
+						 std::pow(Grid_Electrograms[d1].y - Grid_Electrograms[d2].y,2 ) +
+						 std::pow(Grid_Electrograms[d1].z - Grid_Electrograms[d2].z,2 ) );
+
+		Distances[0].push_back(dist);
+
+		// get MPC in current window
+		Data_Vec1.clear();
+		Data_Vec2.clear();
+		Data_Vec1.assign(Grid_Electrograms[d1].Phase.begin() + Start_Ptr, Grid_Electrograms[d1].Phase.begin() + Stop_Ptr);
+		Data_Vec2.assign(Grid_Electrograms[d2].Phase.begin() + Start_Ptr, Grid_Electrograms[d2].Phase.begin() + Stop_Ptr);
+		mpc = Numerical_Library_Obj.get_phase_synchronization(&Data_Vec1,&Data_Vec2,1,1,Take_80_Perc_Flag,Delay);
+		MPCs[0].push_back(mpc);
+/*
+		// get Pearson Correlation in current window
+		Data_Vec1.clear();
+		Data_Vec2.clear();
+		Data_Vec1.assign(Grid_Electrograms[d1].Egm.begin() + Start_Ptr, Grid_Electrograms[d1].Egm.begin() + Stop_Ptr);
+		Data_Vec2.assign(Grid_Electrograms[d2].Egm.begin() + Start_Ptr, Grid_Electrograms[d2].Egm.begin() + Stop_Ptr);
+		Correlation_Vector = Numerical_Library_Obj.get_correlation_vector_custom_range(&Data_Vec1,&Data_Vec2, Corr_Steps_Number, Corr_Step_Size);
+		Numerical_Library_Obj.find_min_max(&Correlation_Vector,&Min, &Max, &Min_Ptr, &Max_Ptr);
+		Corrs.push_back(Max);
+*/
+	}
+
+	MPC[0] = Numerical_Library_Obj.get_average_from_vector(MPCs);
+
+	// fit linear log curve: MPC
+	logCorr.clear();
+	for(long k=0;k<MPCs[0].size();k++)
+	if( MPCs[0][k] > 0 )
+	logCorr.push_back( std::log(MPCs[0][k]) );
+	else
+	logCorr.push_back(0);
+
+	Numerical_Library_Obj.fitLine(Distances, &logCorr, &slope_MPC, &intercept_MPC);
+
+	if( slope_MPC != 0 )
+	Correlation_Length_MPC = -1.0/slope_MPC;
+	else
+	Correlation_Length_MPC = 0;
+
+	CL[0] = Correlation_Length_MPC;
+
+
+/*
+	// fit linear log curve: Pearson
+	logCorr.clear();
+	for(long k=0;k<Corrs.size();k++)
+	if( Corrs[k] > 0 )
+	logCorr.push_back( std::log(Corrs[k]) );
+	else
+	logCorr.push_back(0);
+
+	Numerical_Library_Obj.fitLine(&Distances, &logCorr, &slope_Pearson, &intercept_Pearson);
+
+	if( slope_Pearson != 0 )
+	Correlation_Length_Pearson = -1.0/slope_Pearson;
+	else
+	Correlation_Length_Pearson = 0;
+
+	// !!!!!!!!!!!!!!!! I dont know why, sometimes its in millions. I guess it's becasue of
+	// lack of dependency on distance + random effect
+	if( fabs(Correlation_Length_Pearson)>1000 )
+	Correlation_Length_Pearson = 0;
+
+	return Correlation_Length_Pearson;
+*/
+
+
+	} // if ts != 0
+	else
+	ShowMessage("Timestep equal to zero!");
+	}
+
+}
+//---------------------------------------------------------------------------
+
+vector <double> Simulation_System_Class::calculate_unipolar_voltage_from_surface(int Node_x,long Node_y, long Range)
+{
+/*
+vector <double> Simulation_System_Class::calculate_unipolar_voltage_from_surface(int Node_x,long Node_y, long Range)
+{
+	if( Which_System_Dimension == 2 )
+	return calculate_unipolar_voltage_from_surface(Node_x,Node_y,Range);
+
+	if( Which_System_Dimension == TWO_LAYER_SYSTEM_DIMENSION )
+	return Two_L_System.calculate_unipolar_voltage_from_surface(Node_x,Node_y,Range);
+}
+
+//---------------------------------------------------------------------------
+*/
+	vector <double> unipolar_voltage;
+	double voltage,v,x,y,r;
+
+	for(long t=0;t<VOLTAGE_HISTORY[1][1].DVector.size()-1;t++)
+	{
+
+	voltage=0;
+	for(int i=Node_x-Range;i<(signed)(Node_x+Range);i++)
+	for(int j=Node_y-Range;j<(signed)(Node_y+Range);j++)
+	if( i > 0 && i < Two_Dim_System.Size_X-1 )
+	if( j > 0 && j < Two_Dim_System.Size_Y-1 )
+/// comment out below line if repolarization wave is to be removed from electrogram
+	if( VOLTAGE_HISTORY[i][j].DVector[t+1]-VOLTAGE_HISTORY[i][j].DVector[t] > 0 )
+	{
+
+	v = VOLTAGE_HISTORY[i][j].DVector[t];
+	x =  i - Node_x;
+	y =  j - Node_y;
+	r = std::pow( std::pow(x,2)+std::pow(y,2),1.5);
+
+	if( r >= 2 )
+	voltage +=
+	 (  (VOLTAGE_HISTORY[i+1][j].DVector[t]-
+		 VOLTAGE_HISTORY[i-1][j].DVector[t] )*x
+		+
+
+		(VOLTAGE_HISTORY[i][j+1].DVector[t]-
+		 VOLTAGE_HISTORY[i][j-1].DVector[t] )*y
+	 ) / r;
+
+	} // for all nodes
+
+	unipolar_voltage.push_back(voltage);
+
+	} // through time
+
+	return unipolar_voltage;
+}
+
+//---------------------------------------------------------------------------
+
+double Simulation_System_Class::get_current(int X, int Y)
+{
+	return Two_Dim_System.W1[X][Y]; // STATES_1[X][Y][0];
+}
+
+//------------------------------------------------------------------------------
+
+long Simulation_System_Class::get_closest_timing(int x,int y,long t)
+{
+	long diff=10000,timing=-1;
+
+	for(long tt=0;tt<(signed)ACTIVATION_TIMINGS[x][y].DVector.size();tt++)
+	{
+		if( fabs( ACTIVATION_TIMINGS[x][y].DVector[tt] - t ) < diff )
+		{
+			diff = fabs( ACTIVATION_TIMINGS[x][y].DVector[tt] - t );
+			timing = ACTIVATION_TIMINGS[x][y].DVector[tt];
+		}
+
+	}
+	return timing;
+}
+
+//---------------------------------------------------------------------------
+
+void Simulation_System_Class::add_coupling(int Version,bool Add_Rings)
+{
+	int Size_X = Two_Dim_System.Size_X;
+	int Size_Y = Two_Dim_System.Size_Y;
+	double Max_Diff_X = Two_Dim_System.Max_Diff_X;
+	double Max_Diff_Y = Two_Dim_System.Max_Diff_Y;
+
+	//------------------------------
+	// discs
+	//------------------------------
+	if( Version == 1 )
+	{
+	int Curr_No = 0;
+	while( Curr_No < Diff_v1_Number )
+	{
+
+	Curr_No++;
+	int x = random( Size_X );
+	int y = random( Size_Y );
+
+	for( int i1=x-Diff_v1_Radius; i1<x+Diff_v1_Radius; i1++)
+	for( int j1=y-Diff_v1_Radius; j1<y+Diff_v1_Radius; j1++)
+	if( sqrt(pow(i1-x,2)+pow(j1-y,2)) < Diff_v1_Radius )
+	if( i1 >= 0 && i1 < Size_X )
+	if( j1 >= 0 && j1 < Size_Y )
+	{
+		Two_Dim_System.DX[i1][j1] = 0;
+		Two_Dim_System.DY[i1][j1] = 0;
+	}
+
+	if(Add_Rings)
+	for( int i1=x-Diff_v1_Radius-Ring_v1_Width; i1<x+Diff_v1_Radius+Ring_v1_Width; i1++)
+	for( int j1=y-Diff_v1_Radius-Ring_v1_Width; j1<y+Diff_v1_Radius+Ring_v1_Width; j1++)
+	if( sqrt(pow(i1-x,2)+pow(j1-y,2)) > Diff_v1_Radius )
+	if( sqrt(pow(i1-x,2)+pow(j1-y,2)) < Diff_v1_Radius+Ring_v1_Width )
+	if( i1 >= 0 && i1 < Size_X )
+	if( j1 >= 0 && j1 < Size_Y )
+	{
+		Two_Dim_System.DX[i1][j1] = (1.+Ring_v1_PercD/100.)*Max_Diff_X;
+		Two_Dim_System.DY[i1][j1] = (1.+Ring_v1_PercD/100.)*Max_Diff_Y;
+	}
+
+	}
+
+
+	} // discs
+
+	//------------------------------
+	// lines
+	//------------------------------
+	if( Version == 2 )
+	{
+
+	for(long k=0;k<Lines_No_v1;k++)
+	for(long ypos=Size_X*(100-Line_Perc_Leng_v1)*0.01*0.5;
+			 ypos<Size_X-Size_X*(100-Line_Perc_Leng_v1)*0.01*0.5;
+			 ypos++)
+	{
+		int xpos = (k+1)*Size_Y/Lines_No_v1;
+
+		if( xpos > 0 && xpos < Size_X )
+		if( ypos > 0 && ypos < Size_Y )
+		{
+			Two_Dim_System.DX[xpos][ypos] = Line_Perc_D/100.*Max_Diff_X;
+			Two_Dim_System.DY[xpos][ypos] = Line_Perc_D/100.*Max_Diff_Y;
+		}
+	}
+
+	} // discs
+
+	//------------------------------
+	// central disk
+	//------------------------------
+	if( Version == 3 )
+	{
+
+	for( int i1=Size_X/2-Disk_Radius; i1<Size_X/2+Disk_Radius; i1++)
+	for( int j1=Size_Y/2-Disk_Radius; j1<Size_Y/2+Disk_Radius; j1++)
+	if( sqrt(pow(i1-Size_X/2,2)+pow(j1-Size_Y/2,2)) < Disk_Radius )
+	if( i1 >= 0 && i1 < Size_X )
+	if( j1 >= 0 && j1 < Size_Y )
+	{
+		Two_Dim_System.DX[i1][j1] = 0;
+		Two_Dim_System.DY[i1][j1] = 0;
+	}
+
+	} //  central disk
+
+}
+
+//---------------------------------------------------------------------------
+
+

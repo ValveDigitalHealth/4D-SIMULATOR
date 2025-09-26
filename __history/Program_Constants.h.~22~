@@ -1,0 +1,38 @@
+
+#ifndef TWO_DIM_SYSTEM_X_SIZE
+#define TWO_DIM_SYSTEM_X_SIZE 500
+#endif
+
+#ifndef TWO_DIM_SYSTEM_Y_SIZE
+#define TWO_DIM_SYSTEM_Y_SIZE 500
+#endif
+
+#ifndef THREE_DIM_SYSTEM_X_SIZE
+#define THREE_DIM_SYSTEM_X_SIZE 80
+#endif
+
+#ifndef THREE_DIM_SYSTEM_Y_SIZE
+#define THREE_DIM_SYSTEM_Y_SIZE 80
+#endif
+
+#ifndef THREE_DIM_SYSTEM_Z_SIZE
+#define THREE_DIM_SYSTEM_Z_SIZE 50
+#endif
+
+
+#ifndef TWO_LAYER_SYSTEM_DIMENSION
+#define TWO_LAYER_SYSTEM_DIMENSION 5
+#endif
+
+#ifndef HD_GRID_SIZE
+#define HD_GRID_SIZE 4
+#endif
+
+#ifndef VISITED_FLAG
+#define VISITED_FLAG 1
+#endif
+
+#ifndef NOT_VISITED_FLAG
+#define NOT_VISITED_FLAG -1
+#endif
+

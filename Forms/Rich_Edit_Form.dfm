@@ -1,0 +1,39 @@
+object RichEdit_Form: TRichEdit_Form
+  Left = 0
+  Top = 0
+  Caption = 'RichEdit_Form'
+  ClientHeight = 1255
+  ClientWidth = 1176
+  Color = clBtnFace
+  Font.Charset = DEFAULT_CHARSET
+  Font.Color = clWindowText
+  Font.Height = -12
+  Font.Name = 'Segoe UI'
+  Font.Style = []
+  TextHeight = 15
+  object RichEdit: TRichEdit
+    Left = 8
+    Top = 8
+    Width = 1160
+    Height = 1161
+    Font.Charset = ANSI_CHARSET
+    Font.Color = clWindowText
+    Font.Height = -12
+    Font.Name = 'Segoe UI'
+    Font.Style = []
+    Lines.Strings = (
+      'RichEdit')
+    ParentFont = False
+    ScrollBars = ssVertical
+    TabOrder = 0
+  end
+  object Close_Button: TButton
+    Left = 943
+    Top = 1184
+    Width = 225
+    Height = 63
+    Caption = 'Close'
+    TabOrder = 1
+    OnClick = Close_ButtonClick
+  end
+end

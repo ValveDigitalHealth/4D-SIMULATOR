@@ -1,0 +1,139 @@
+
+#ifndef LRTISSUE91_H
+#define LRTISSUE91_H
+
+#include "Numerical_Library.h"
+#include "Program_Constants.h"
+#include "Electrogram_class.h"
+
+#include "LR_91_cell.h"
+#include "LR_91_cell_original.h"
+
+//-------------------------------------------------------------------------
+
+class LR_91_2D_system_class
+{
+	public:
+
+	LR_91_2D_system_class();
+	~LR_91_2D_system_class();
+
+	int save_object(ofstream* dfile);
+	int load_object(ifstream* dfile);
+
+	Numerical_Library Numerical_Library_Obj;
+
+	// Dimensions of the grid
+	int Size_X,Size_Y;
+
+	double Min_Voltage,Max_Voltage;
+	double Min_Diff,Max_Diff_X,Max_Diff_Y;
+	void set_initial_coupling();
+
+	//-------------------------------------------------------------------------------
+	Luo_Rudy_91_cell LR_Tissue[TWO_DIM_SYSTEM_X_SIZE][TWO_DIM_SYSTEM_Y_SIZE];
+	Luo_Rudy_91_cell_original LR_Tissue[TWO_DIM_SYSTEM_X_SIZE][TWO_DIM_SYSTEM_Y_SIZE];
+	//-------------------------------------------------------------------------------
+
+	double DX[TWO_DIM_SYSTEM_X_SIZE][TWO_DIM_SYSTEM_Y_SIZE];
+	double DY[TWO_DIM_SYSTEM_X_SIZE][TWO_DIM_SYSTEM_Y_SIZE];
+	double CUSTOM_VALUE[TWO_DIM_SYSTEM_X_SIZE][TWO_DIM_SYSTEM_Y_SIZE];
+	double CUSTOM_VALUE_2[TWO_DIM_SYSTEM_X_SIZE][TWO_DIM_SYSTEM_Y_SIZE];
+	double Min_Custom_Value,Max_Custom_Value;
+	void compute_min_max_custom_value();
+	double get_custom_value(double Cx, double Cy);
+
+	// recorded history
+	vector_of_floats VOLTAGE_HISTORY[TWO_DIM_SYSTEM_X_SIZE][TWO_DIM_SYSTEM_Y_SIZE];
+	vector<double> VOLTAGE_HISTORY_Time_Axis_ms;
+	void get_voltage(int x_coord, int y_coord,long t_ptr,double *Voltage,double *Time);
+	double get_voltage(int X, int Y);
+	double get_current(int X, int Y);
+	int get_color_code(int Source,int X,int Y,long t);
+	void clear_signals_history();
+	long get_voltage_history_vector_size(int X,int Y);
+    long get_history_vector_size();
+
+	void record_potentials(int Type,int Grid_Spacing);
+	double get_unipolar_voltage(int x_coord, int y_coord);
+    vector <double> calculate_unipolar_voltage_from_surface(int Node_x,long Node_y, long Range);
+
+	void export_voltage_history(AnsiString Filename,AnsiString Signal_Type);
+
+//// obsolete: (for compatibilty purpose only
+	int compute_ISIs(long Node_Ptr_X, long Node_Ptr_Y);
+	vector<long>Activations_Positions;
+	vector<long>ISIs;
+	long ISIs_Node_Ptr_X,ISIs_Node_Ptr_Y;
+/////////////////
+
+	void clear_system();
+	void allocate_tables();
+
+	void create_spiral(int Slice);
+	void load_phase_file();
+	long size_of_phase_vector;
+	double** Data;
+
+	int Boundary_Conditions; // 0-no flux, 1-periodic !!!!!!111 ADD TO SAVE
+
+	bool activity_present();
+
+	double dx,dx2;
+
+	double Global_Time;
+
+	void calculate_one_step();
+	void compute_N_steps(int steps_number);
+
+	void stimulate_system(double Cx, double Cy);
+	void stimulate_node(int X,int Y);
+	void stimulate_edge(int Which);
+	void ablate_system_xy_point(int X,int Y);
+	void ablate_system(double Cx, double Cy);
+
+
+	// coupling stuff
+	double Diff_v1_Number;
+	double Diff_v1_Radius;
+	double Ring_v1_Width;
+	double Ring_v1_PercD;
+	double Lines_No_v1;
+	double Line_Perc_Leng_v1;
+	double Line_Perc_D;
+	double Disk_Radius;
+
+	void add_coupling(int Version,bool Add_Rings);
+
+	void add_non_conducting_disk(int X,int Y,int Z,int R);
+	bool activity_present_check();
+	void add_mi1_mi2_R_disk(double mi1,double mi2,double R, int Target_Variable);
+
+	//-----------------------------------------------------
+	std::vector<Electrogram> Grid_Electrograms;
+	//-----------------------------------------------------
+	void clear_grid_egms();
+	void add_grid_egm(Electrogram *E);
+	double get_correlation_length(
+		long Start_Ptr,long Stop_Ptr, long BCL_Ptr,
+		double* CL, double* MPC,std::vector<double> *MPCs,std::vector<double> *Distances);
+	// Correlation length support
+	std::vector<double> Corrs;
+
+
+/////////////////////////////////////////
+	double Tip_Timer;
+	bool tip_searching;
+	int** Tip_Position;
+	long Tip_Counter;
+	long Pos_Size;
+	void find_tip();
+
+/////////////////////////////////////////
+
+	// empty, for compatibility purposes
+	void refresh_VW_matrices();
+    void compute_ISIs_XY(int X, int Y);
+
+};
+#endif

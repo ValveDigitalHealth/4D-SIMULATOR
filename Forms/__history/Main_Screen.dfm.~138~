@@ -1,0 +1,3227 @@
+object Main_Screen_Form: TMain_Screen_Form
+  Left = 0
+  Top = 0
+  Margins.Left = 5
+  Margins.Top = 5
+  Margins.Right = 5
+  Margins.Bottom = 5
+  Align = alClient
+  Caption = '4D active media simulator'
+  ClientHeight = 1545
+  ClientWidth = 2886
+  Color = clBtnFace
+  Font.Charset = DEFAULT_CHARSET
+  Font.Color = clWindowText
+  Font.Height = -17
+  Font.Name = 'Tahoma'
+  Font.Style = []
+  Menu = MainMenu1
+  OnCreate = FormCreate
+  OnDestroy = FormDestroy
+  OnResize = FormResize
+  OnShow = FormShow
+  PixelsPerInch = 144
+  TextHeight = 21
+  object Main_PageControl: TPageControl
+    Left = 359
+    Top = 44
+    Width = 1347
+    Height = 1239
+    ActivePage = Coupling
+    TabOrder = 0
+    object TabSheet1: TTabSheet
+      Caption = 'Main controls'
+      object Time_Label: TLabel
+        Left = 20
+        Top = 188
+        Width = 43
+        Height = 21
+        Caption = 'Time:'
+      end
+      object Timer_Slider_Label: TLabel
+        Left = 20
+        Top = 450
+        Width = 162
+        Height = 21
+        Caption = 'Voltage history slider:'
+      end
+      object Label56: TLabel
+        Left = 465
+        Top = 366
+        Width = 187
+        Height = 21
+        Caption = 'Direction tolerance [deg]'
+      end
+      object Label36: TLabel
+        Left = 351
+        Top = 183
+        Width = 85
+        Height = 21
+        Caption = 'Pause [ms]'
+      end
+      object Label57: TLabel
+        Left = 351
+        Top = 146
+        Width = 110
+        Height = 21
+        Caption = 'Timestep [ms]'
+      end
+      object Label58: TLabel
+        Left = 225
+        Top = 366
+        Width = 100
+        Height = 21
+        Caption = 'Mesh spacing'
+      end
+      object T_Label: TLabel
+        Left = 305
+        Top = 591
+        Width = 39
+        Height = 21
+        Caption = 'Step:'
+      end
+      object Start_Sim_Button: TButton
+        Left = 17
+        Top = 140
+        Width = 91
+        Height = 42
+        Caption = 'START'
+        TabOrder = 0
+        OnClick = Start_Sim_ButtonClick
+      end
+      object Stop_Sim_Button: TButton
+        Left = 114
+        Top = 140
+        Width = 92
+        Height = 42
+        Caption = 'STOP'
+        TabOrder = 1
+        OnClick = Stop_Sim_ButtonClick
+      end
+      object Stim_Button: TButton
+        Left = 17
+        Top = 230
+        Width = 91
+        Height = 51
+        Caption = 'Stimulate'
+        TabOrder = 2
+        OnClick = Stim_ButtonClick
+      end
+      object Clear_Button: TButton
+        Left = 212
+        Top = 140
+        Width = 85
+        Height = 42
+        Caption = 'Clear'
+        TabOrder = 3
+        OnClick = Clear_ButtonClick
+      end
+      object Make_Spiral_In_Current_Slice_Button: TButton
+        Left = 114
+        Top = 230
+        Width = 141
+        Height = 51
+        Caption = 'SPIRAL'
+        TabOrder = 4
+        OnClick = Make_Spiral_In_Current_Slice_ButtonClick
+      end
+      object System_Dim_RadioGroup: TRadioGroup
+        Left = 3
+        Top = 3
+        Width = 174
+        Height = 131
+        Caption = 'System dimension'
+        ItemIndex = 0
+        Items.Strings = (
+          '2D'
+          '3D'
+          '4D'
+          '2 layers')
+        TabOrder = 5
+        OnClick = System_Dim_RadioGroupClick
+      end
+      object Boundary_Conditions_RadioGroup: TRadioGroup
+        Left = 183
+        Top = 3
+        Width = 176
+        Height = 77
+        Caption = 'Boundary conditions'
+        ItemIndex = 0
+        Items.Strings = (
+          'Zero-flux'
+          'Periodic')
+        TabOrder = 6
+        OnClick = Boundary_Conditions_RadioGroupClick
+      end
+      object LMB_Action_RadioGroup: TRadioGroup
+        Left = 386
+        Top = 3
+        Width = 190
+        Height = 131
+        Caption = 'Left mouse button'
+        ItemIndex = 2
+        Items.Strings = (
+          'Stimulate'
+          'Ablate'
+          'Point to see signal'
+          'Draw line')
+        TabOrder = 7
+      end
+      object Layer_RadioGroup: TRadioGroup
+        Left = 20
+        Top = 296
+        Width = 171
+        Height = 132
+        Caption = 'Layer'
+        Font.Charset = DEFAULT_CHARSET
+        Font.Color = clWindowText
+        Font.Height = -29
+        Font.Name = 'Tahoma'
+        Font.Style = []
+        ItemIndex = 1
+        Items.Strings = (
+          '1'
+          '2')
+        ParentFont = False
+        TabOrder = 8
+        OnClick = Layer_RadioGroupClick
+      end
+      object Initiate_AF_Button: TButton
+        Left = 261
+        Top = 230
+        Width = 143
+        Height = 51
+        Caption = 'Initiate AF'
+        TabOrder = 9
+        OnClick = Initiate_AF_ButtonClick
+      end
+      object History_ScrollBar: TScrollBar
+        Left = 20
+        Top = 476
+        Width = 556
+        Height = 27
+        Max = 1000
+        PageSize = 0
+        TabOrder = 10
+        OnChange = History_ScrollBarChange
+      end
+      object Calculate_CV_Button: TButton
+        Left = 224
+        Top = 399
+        Width = 208
+        Height = 51
+        Caption = 'Calculate CV arrows'
+        TabOrder = 11
+        OnClick = Calculate_CV_ButtonClick
+      end
+      object Laminar_Domains_Calculate_Button: TButton
+        Left = 438
+        Top = 399
+        Width = 248
+        Height = 51
+        Caption = 'Recalculate laminar domains'
+        TabOrder = 12
+        OnClick = Laminar_Domains_Calculate_ButtonClick
+      end
+      object Direction_Tolerance_Edit: TEdit
+        Left = 650
+        Top = 362
+        Width = 73
+        Height = 29
+        TabOrder = 13
+        Text = '30'
+      end
+      object Main_Control_Page_RichEdit: TRichEdit
+        Left = 20
+        Top = 510
+        Width = 235
+        Height = 452
+        Margins.Left = 5
+        Margins.Top = 5
+        Margins.Right = 5
+        Margins.Bottom = 5
+        Font.Charset = ANSI_CHARSET
+        Font.Color = clWindowText
+        Font.Height = -11
+        Font.Name = 'Tahoma'
+        Font.Style = []
+        Lines.Strings = (
+          'Main_Control_Page_'
+          'RichE'
+          'di'
+          't')
+        ParentFont = False
+        ScrollBars = ssVertical
+        TabOrder = 14
+      end
+      object Pause_Edit: TEdit
+        Left = 441
+        Top = 177
+        Width = 74
+        Height = 29
+        TabOrder = 15
+        Text = '10'
+      end
+      object Timestep_Edit: TEdit
+        Left = 480
+        Top = 140
+        Width = 74
+        Height = 29
+        TabOrder = 16
+        Text = '0.02'
+      end
+      object CV_Mesh_Spacing_Edit: TEdit
+        Left = 330
+        Top = 362
+        Width = 74
+        Height = 29
+        TabOrder = 17
+        Text = '2'
+      end
+      object CV_Vectors_Method_RadioGroup: TRadioGroup
+        Left = 420
+        Top = 246
+        Width = 266
+        Height = 92
+        Margins.Left = 5
+        Margins.Top = 5
+        Margins.Right = 5
+        Margins.Bottom = 5
+        Caption = 'CV vectors method:'
+        ItemIndex = 0
+        Items.Strings = (
+          'Based on local activations'
+          'Just phase')
+        TabOrder = 18
+      end
+      object Playback_Speed_Edit: TEdit
+        Left = 354
+        Top = 587
+        Width = 98
+        Height = 29
+        Margins.Left = 5
+        Margins.Top = 5
+        Margins.Right = 5
+        Margins.Bottom = 5
+        TabOrder = 19
+        Text = '2'
+      end
+      object Play_Button: TButton
+        Left = 288
+        Top = 540
+        Width = 144
+        Height = 38
+        Margins.Left = 5
+        Margins.Top = 5
+        Margins.Right = 5
+        Margins.Bottom = 5
+        Caption = 'PLAY'
+        TabOrder = 20
+        OnClick = Play_ButtonClick
+      end
+      object Stop_Playback_Button: TButton
+        Left = 441
+        Top = 540
+        Width = 144
+        Height = 38
+        Margins.Left = 5
+        Margins.Top = 5
+        Margins.Right = 5
+        Margins.Bottom = 5
+        Caption = 'STOP'
+        TabOrder = 21
+        OnClick = Stop_Playback_ButtonClick
+      end
+    end
+    object TabSheet5: TTabSheet
+      Caption = 'Signals tab'
+      ImageIndex = 5
+      object Label9: TLabel
+        Left = 27
+        Top = 21
+        Width = 179
+        Height = 21
+        Caption = 'Grid electrodes spacing:'
+      end
+      object Label1: TLabel
+        Left = 17
+        Top = 90
+        Width = 67
+        Height = 21
+        Caption = 'Sampling'
+      end
+      object Label52: TLabel
+        Left = 209
+        Top = 51
+        Width = 123
+        Height = 21
+        Caption = 'Vertical spacing:'
+      end
+      object Label53: TLabel
+        Left = 837
+        Top = 18
+        Width = 172
+        Height = 21
+        Caption = 'CL sliding window size:'
+      end
+      object Label54: TLabel
+        Left = 837
+        Top = 48
+        Width = 175
+        Height = 21
+        Caption = 'CL sliding window step:'
+      end
+      object Label55: TLabel
+        Left = 864
+        Top = 81
+        Width = 137
+        Height = 21
+        Caption = 'Cycle length [ms]:'
+      end
+      object Signals_Tab_Chart: TChart
+        Left = 3
+        Top = 198
+        Width = 707
+        Height = 474
+        Legend.Visible = False
+        Title.Text.Strings = (
+          'TChart')
+        BottomAxis.Grid.Visible = False
+        BottomAxis.Title.Caption = 'Time [ms]'
+        LeftAxis.Grid.Visible = False
+        LeftAxis.MinorTickCount = 0
+        LeftAxis.TickLength = 0
+        LeftAxis.Title.Caption = 'Voltage'
+        View3D = False
+        View3DOptions.FontZoom = 150
+        Color = clWhite
+        TabOrder = 0
+        DefaultCanvas = 'TGDIPlusCanvas'
+        ColorPaletteIndex = 13
+        object Series4: TFastLineSeries
+          HoverElement = []
+          SeriesColor = -1
+          LinePen.Color = -1
+          LinePen.Width = 2
+          XValues.Name = 'X'
+          XValues.Order = loAscending
+          YValues.Name = 'Y'
+          YValues.Order = loNone
+        end
+        object Series5: TFastLineSeries
+          HoverElement = []
+          SeriesColor = clBlack
+          LinePen.Width = 2
+          XValues.Name = 'X'
+          XValues.Order = loAscending
+          YValues.Name = 'Y'
+          YValues.Order = loNone
+        end
+        object Series6: TFastLineSeries
+          HoverElement = []
+          SeriesColor = clBlack
+          LinePen.Width = 2
+          XValues.Name = 'X'
+          XValues.Order = loAscending
+          YValues.Name = 'Y'
+          YValues.Order = loNone
+        end
+        object Series7: TFastLineSeries
+          HoverElement = []
+          SeriesColor = clBlack
+          LinePen.Width = 2
+          XValues.Name = 'X'
+          XValues.Order = loAscending
+          YValues.Name = 'Y'
+          YValues.Order = loNone
+        end
+        object Series8: TFastLineSeries
+          HoverElement = []
+          SeriesColor = clBlack
+          LinePen.Width = 2
+          XValues.Name = 'X'
+          XValues.Order = loAscending
+          YValues.Name = 'Y'
+          YValues.Order = loNone
+        end
+        object Series9: TFastLineSeries
+          HoverElement = []
+          LinePen.Color = 10708548
+          XValues.Name = 'X'
+          XValues.Order = loAscending
+          YValues.Name = 'Y'
+          YValues.Order = loNone
+        end
+        object Series10: TFastLineSeries
+          HoverElement = []
+          LinePen.Color = 10708548
+          XValues.Name = 'X'
+          XValues.Order = loAscending
+          YValues.Name = 'Y'
+          YValues.Order = loNone
+        end
+        object Series11: TFastLineSeries
+          HoverElement = []
+          LinePen.Color = 10708548
+          XValues.Name = 'X'
+          XValues.Order = loAscending
+          YValues.Name = 'Y'
+          YValues.Order = loNone
+        end
+        object Series12: TFastLineSeries
+          HoverElement = []
+          LinePen.Color = 10708548
+          XValues.Name = 'X'
+          XValues.Order = loAscending
+          YValues.Name = 'Y'
+          YValues.Order = loNone
+        end
+        object Series13: TFastLineSeries
+          HoverElement = []
+          LinePen.Color = 10708548
+          XValues.Name = 'X'
+          XValues.Order = loAscending
+          YValues.Name = 'Y'
+          YValues.Order = loNone
+        end
+        object Series14: TFastLineSeries
+          HoverElement = []
+          LinePen.Color = 10708548
+          XValues.Name = 'X'
+          XValues.Order = loAscending
+          YValues.Name = 'Y'
+          YValues.Order = loNone
+        end
+        object Series15: TFastLineSeries
+          HoverElement = []
+          LinePen.Color = 10708548
+          XValues.Name = 'X'
+          XValues.Order = loAscending
+          YValues.Name = 'Y'
+          YValues.Order = loNone
+        end
+        object Series16: TFastLineSeries
+          HoverElement = []
+          LinePen.Color = 10708548
+          XValues.Name = 'X'
+          XValues.Order = loAscending
+          YValues.Name = 'Y'
+          YValues.Order = loNone
+        end
+        object Series17: TFastLineSeries
+          HoverElement = []
+          LinePen.Color = 10708548
+          XValues.Name = 'X'
+          XValues.Order = loAscending
+          YValues.Name = 'Y'
+          YValues.Order = loNone
+        end
+        object Series18: TFastLineSeries
+          HoverElement = []
+          LinePen.Color = 10708548
+          XValues.Name = 'X'
+          XValues.Order = loAscending
+          YValues.Name = 'Y'
+          YValues.Order = loNone
+        end
+        object Series19: TFastLineSeries
+          HoverElement = []
+          LinePen.Color = 10708548
+          XValues.Name = 'X'
+          XValues.Order = loAscending
+          YValues.Name = 'Y'
+          YValues.Order = loNone
+        end
+        object Series20: TFastLineSeries
+          HoverElement = []
+          LinePen.Color = 10708548
+          XValues.Name = 'X'
+          XValues.Order = loAscending
+          YValues.Name = 'Y'
+          YValues.Order = loNone
+        end
+        object Series21: TFastLineSeries
+          HoverElement = []
+          LinePen.Color = 10708548
+          XValues.Name = 'X'
+          XValues.Order = loAscending
+          YValues.Name = 'Y'
+          YValues.Order = loNone
+        end
+        object Series22: TFastLineSeries
+          HoverElement = []
+          LinePen.Color = 10708548
+          XValues.Name = 'X'
+          XValues.Order = loAscending
+          YValues.Name = 'Y'
+          YValues.Order = loNone
+        end
+        object Series23: TFastLineSeries
+          HoverElement = []
+          LinePen.Color = 10708548
+          XValues.Name = 'X'
+          XValues.Order = loAscending
+          YValues.Name = 'Y'
+          YValues.Order = loNone
+        end
+        object Series24: TFastLineSeries
+          HoverElement = []
+          LinePen.Color = 10708548
+          XValues.Name = 'X'
+          XValues.Order = loAscending
+          YValues.Name = 'Y'
+          YValues.Order = loNone
+        end
+        object Series25: TFastLineSeries
+          HoverElement = []
+          LinePen.Color = 10708548
+          XValues.Name = 'X'
+          XValues.Order = loAscending
+          YValues.Name = 'Y'
+          YValues.Order = loNone
+        end
+        object Series26: TFastLineSeries
+          HoverElement = []
+          LinePen.Color = 10708548
+          XValues.Name = 'X'
+          XValues.Order = loAscending
+          YValues.Name = 'Y'
+          YValues.Order = loNone
+        end
+        object Series27: TFastLineSeries
+          HoverElement = []
+          LinePen.Color = 10708548
+          XValues.Name = 'X'
+          XValues.Order = loAscending
+          YValues.Name = 'Y'
+          YValues.Order = loNone
+        end
+        object Series28: TFastLineSeries
+          HoverElement = []
+          LinePen.Color = 10708548
+          XValues.Name = 'X'
+          XValues.Order = loAscending
+          YValues.Name = 'Y'
+          YValues.Order = loNone
+        end
+        object Series29: TFastLineSeries
+          HoverElement = []
+          LinePen.Color = 10708548
+          XValues.Name = 'X'
+          XValues.Order = loAscending
+          YValues.Name = 'Y'
+          YValues.Order = loNone
+        end
+        object Series30: TFastLineSeries
+          HoverElement = []
+          LinePen.Color = 10708548
+          XValues.Name = 'X'
+          XValues.Order = loAscending
+          YValues.Name = 'Y'
+          YValues.Order = loNone
+        end
+        object Series31: TFastLineSeries
+          HoverElement = []
+          LinePen.Color = 10708548
+          XValues.Name = 'X'
+          XValues.Order = loAscending
+          YValues.Name = 'Y'
+          YValues.Order = loNone
+        end
+        object Series32: TFastLineSeries
+          HoverElement = []
+          LinePen.Color = 10708548
+          XValues.Name = 'X'
+          XValues.Order = loAscending
+          YValues.Name = 'Y'
+          YValues.Order = loNone
+        end
+        object Series33: TFastLineSeries
+          HoverElement = []
+          LinePen.Color = 10708548
+          XValues.Name = 'X'
+          XValues.Order = loAscending
+          YValues.Name = 'Y'
+          YValues.Order = loNone
+        end
+        object Series34: TFastLineSeries
+          HoverElement = []
+          LinePen.Color = 10708548
+          XValues.Name = 'X'
+          XValues.Order = loAscending
+          YValues.Name = 'Y'
+          YValues.Order = loNone
+        end
+        object Series40: TLineSeries
+          HoverElement = [heCurrent]
+          Brush.BackColor = clDefault
+          Pointer.InflateMargins = True
+          Pointer.Style = psRectangle
+          XValues.Name = 'X'
+          XValues.Order = loAscending
+          YValues.Name = 'Y'
+          YValues.Order = loNone
+        end
+        object Series41: TLineSeries
+          HoverElement = [heCurrent]
+          Brush.BackColor = clDefault
+          Pointer.InflateMargins = True
+          Pointer.Style = psRectangle
+          XValues.Name = 'X'
+          XValues.Order = loAscending
+          YValues.Name = 'Y'
+          YValues.Order = loNone
+        end
+        object Series42: TLineSeries
+          HoverElement = [heCurrent]
+          Brush.BackColor = clDefault
+          Pointer.InflateMargins = True
+          Pointer.Style = psRectangle
+          XValues.Name = 'X'
+          XValues.Order = loAscending
+          YValues.Name = 'Y'
+          YValues.Order = loNone
+        end
+        object Series43: TLineSeries
+          HoverElement = [heCurrent]
+          Brush.BackColor = clDefault
+          Pointer.InflateMargins = True
+          Pointer.Style = psRectangle
+          XValues.Name = 'X'
+          XValues.Order = loAscending
+          YValues.Name = 'Y'
+          YValues.Order = loNone
+        end
+        object Series44: TLineSeries
+          HoverElement = [heCurrent]
+          Brush.BackColor = clDefault
+          Pointer.InflateMargins = True
+          Pointer.Style = psRectangle
+          XValues.Name = 'X'
+          XValues.Order = loAscending
+          YValues.Name = 'Y'
+          YValues.Order = loNone
+        end
+        object Series45: TLineSeries
+          HoverElement = [heCurrent]
+          Brush.BackColor = clDefault
+          Pointer.InflateMargins = True
+          Pointer.Style = psRectangle
+          XValues.Name = 'X'
+          XValues.Order = loAscending
+          YValues.Name = 'Y'
+          YValues.Order = loNone
+        end
+        object Series46: TLineSeries
+          HoverElement = [heCurrent]
+          Brush.BackColor = clDefault
+          Pointer.InflateMargins = True
+          Pointer.Style = psRectangle
+          XValues.Name = 'X'
+          XValues.Order = loAscending
+          YValues.Name = 'Y'
+          YValues.Order = loNone
+        end
+        object Series47: TLineSeries
+          HoverElement = [heCurrent]
+          Brush.BackColor = clDefault
+          Pointer.InflateMargins = True
+          Pointer.Style = psRectangle
+          XValues.Name = 'X'
+          XValues.Order = loAscending
+          YValues.Name = 'Y'
+          YValues.Order = loNone
+        end
+        object Series48: TLineSeries
+          HoverElement = [heCurrent]
+          Brush.BackColor = clDefault
+          Pointer.InflateMargins = True
+          Pointer.Style = psRectangle
+          XValues.Name = 'X'
+          XValues.Order = loAscending
+          YValues.Name = 'Y'
+          YValues.Order = loNone
+        end
+        object Series49: TLineSeries
+          HoverElement = [heCurrent]
+          Brush.BackColor = clDefault
+          Pointer.InflateMargins = True
+          Pointer.Style = psRectangle
+          XValues.Name = 'X'
+          XValues.Order = loAscending
+          YValues.Name = 'Y'
+          YValues.Order = loNone
+        end
+        object Series50: TLineSeries
+          HoverElement = [heCurrent]
+          Brush.BackColor = clDefault
+          Pointer.InflateMargins = True
+          Pointer.Style = psRectangle
+          XValues.Name = 'X'
+          XValues.Order = loAscending
+          YValues.Name = 'Y'
+          YValues.Order = loNone
+        end
+        object Series51: TLineSeries
+          HoverElement = [heCurrent]
+          Brush.BackColor = clDefault
+          Pointer.InflateMargins = True
+          Pointer.Style = psRectangle
+          XValues.Name = 'X'
+          XValues.Order = loAscending
+          YValues.Name = 'Y'
+          YValues.Order = loNone
+        end
+        object Series52: TLineSeries
+          HoverElement = [heCurrent]
+          Brush.BackColor = clDefault
+          Pointer.InflateMargins = True
+          Pointer.Style = psRectangle
+          XValues.Name = 'X'
+          XValues.Order = loAscending
+          YValues.Name = 'Y'
+          YValues.Order = loNone
+        end
+        object Series53: TLineSeries
+          HoverElement = [heCurrent]
+          Brush.BackColor = clDefault
+          Pointer.InflateMargins = True
+          Pointer.Style = psRectangle
+          XValues.Name = 'X'
+          XValues.Order = loAscending
+          YValues.Name = 'Y'
+          YValues.Order = loNone
+        end
+        object Series54: TLineSeries
+          HoverElement = [heCurrent]
+          Brush.BackColor = clDefault
+          Pointer.InflateMargins = True
+          Pointer.Style = psRectangle
+          XValues.Name = 'X'
+          XValues.Order = loAscending
+          YValues.Name = 'Y'
+          YValues.Order = loNone
+        end
+        object Series55: TLineSeries
+          HoverElement = [heCurrent]
+          Brush.BackColor = clDefault
+          Pointer.InflateMargins = True
+          Pointer.Style = psRectangle
+          XValues.Name = 'X'
+          XValues.Order = loAscending
+          YValues.Name = 'Y'
+          YValues.Order = loNone
+        end
+        object Series56: TLineSeries
+          HoverElement = [heCurrent]
+          Brush.BackColor = clDefault
+          Pointer.InflateMargins = True
+          Pointer.Style = psRectangle
+          XValues.Name = 'X'
+          XValues.Order = loAscending
+          YValues.Name = 'Y'
+          YValues.Order = loNone
+        end
+        object Series57: TLineSeries
+          HoverElement = [heCurrent]
+          Brush.BackColor = clDefault
+          Pointer.InflateMargins = True
+          Pointer.Style = psRectangle
+          XValues.Name = 'X'
+          XValues.Order = loAscending
+          YValues.Name = 'Y'
+          YValues.Order = loNone
+        end
+        object Series58: TLineSeries
+          HoverElement = [heCurrent]
+          Brush.BackColor = clDefault
+          Pointer.InflateMargins = True
+          Pointer.Style = psRectangle
+          XValues.Name = 'X'
+          XValues.Order = loAscending
+          YValues.Name = 'Y'
+          YValues.Order = loNone
+        end
+        object Series59: TLineSeries
+          HoverElement = [heCurrent]
+          Brush.BackColor = clDefault
+          Pointer.InflateMargins = True
+          Pointer.Style = psRectangle
+          XValues.Name = 'X'
+          XValues.Order = loAscending
+          YValues.Name = 'Y'
+          YValues.Order = loNone
+        end
+        object Series60: TLineSeries
+          HoverElement = [heCurrent]
+          Brush.BackColor = clDefault
+          Pointer.InflateMargins = True
+          Pointer.Style = psRectangle
+          XValues.Name = 'X'
+          XValues.Order = loAscending
+          YValues.Name = 'Y'
+          YValues.Order = loNone
+        end
+        object Series61: TLineSeries
+          HoverElement = [heCurrent]
+          Brush.BackColor = clDefault
+          Pointer.InflateMargins = True
+          Pointer.Style = psRectangle
+          XValues.Name = 'X'
+          XValues.Order = loAscending
+          YValues.Name = 'Y'
+          YValues.Order = loNone
+        end
+        object Series62: TLineSeries
+          HoverElement = [heCurrent]
+          Brush.BackColor = clDefault
+          Pointer.InflateMargins = True
+          Pointer.Style = psRectangle
+          XValues.Name = 'X'
+          XValues.Order = loAscending
+          YValues.Name = 'Y'
+          YValues.Order = loNone
+        end
+        object Series63: TLineSeries
+          HoverElement = [heCurrent]
+          Brush.BackColor = clDefault
+          Pointer.InflateMargins = True
+          Pointer.Style = psRectangle
+          XValues.Name = 'X'
+          XValues.Order = loAscending
+          YValues.Name = 'Y'
+          YValues.Order = loNone
+        end
+        object Series64: TLineSeries
+          HoverElement = [heCurrent]
+          Brush.BackColor = clDefault
+          Pointer.InflateMargins = True
+          Pointer.Style = psRectangle
+          XValues.Name = 'X'
+          XValues.Order = loAscending
+          YValues.Name = 'Y'
+          YValues.Order = loNone
+        end
+        object Series65: TLineSeries
+          HoverElement = [heCurrent]
+          Brush.BackColor = clDefault
+          Pointer.InflateMargins = True
+          Pointer.Style = psRectangle
+          XValues.Name = 'X'
+          XValues.Order = loAscending
+          YValues.Name = 'Y'
+          YValues.Order = loNone
+        end
+        object Series67: TLineSeries
+          HoverElement = [heCurrent]
+          Brush.BackColor = clDefault
+          Pointer.InflateMargins = True
+          Pointer.Style = psRectangle
+          XValues.Name = 'X'
+          XValues.Order = loAscending
+          YValues.Name = 'Y'
+          YValues.Order = loNone
+        end
+        object Series68: TLineSeries
+          HoverElement = [heCurrent]
+          Brush.BackColor = clDefault
+          Pointer.InflateMargins = True
+          Pointer.Style = psRectangle
+          XValues.Name = 'X'
+          XValues.Order = loAscending
+          YValues.Name = 'Y'
+          YValues.Order = loNone
+        end
+        object Series70: TLineSeries
+          HoverElement = [heCurrent]
+          Brush.BackColor = clDefault
+          Pointer.InflateMargins = True
+          Pointer.Style = psRectangle
+          XValues.Name = 'X'
+          XValues.Order = loAscending
+          YValues.Name = 'Y'
+          YValues.Order = loNone
+        end
+        object Series72: TPointSeries
+          HoverElement = [heCurrent]
+          ClickableLine = False
+          Pointer.Brush.Color = clRed
+          Pointer.HorizSize = 2
+          Pointer.InflateMargins = True
+          Pointer.Pen.Color = clRed
+          Pointer.Style = psRectangle
+          Pointer.VertSize = 2
+          XValues.Name = 'X'
+          XValues.Order = loAscending
+          YValues.Name = 'Y'
+          YValues.Order = loNone
+        end
+        object Series73: TPointSeries
+          HoverElement = [heCurrent]
+          ClickableLine = False
+          Pointer.Brush.Color = clRed
+          Pointer.HorizSize = 2
+          Pointer.InflateMargins = True
+          Pointer.Pen.Color = clRed
+          Pointer.Style = psRectangle
+          Pointer.VertSize = 2
+          XValues.Name = 'X'
+          XValues.Order = loAscending
+          YValues.Name = 'Y'
+          YValues.Order = loNone
+        end
+        object Series74: TPointSeries
+          HoverElement = [heCurrent]
+          ClickableLine = False
+          Pointer.Brush.Color = clRed
+          Pointer.HorizSize = 2
+          Pointer.InflateMargins = True
+          Pointer.Pen.Color = clRed
+          Pointer.Style = psRectangle
+          Pointer.VertSize = 2
+          XValues.Name = 'X'
+          XValues.Order = loAscending
+          YValues.Name = 'Y'
+          YValues.Order = loNone
+        end
+        object Series75: TPointSeries
+          HoverElement = [heCurrent]
+          ClickableLine = False
+          Pointer.Brush.Color = clRed
+          Pointer.HorizSize = 2
+          Pointer.InflateMargins = True
+          Pointer.Pen.Color = clRed
+          Pointer.Style = psRectangle
+          Pointer.VertSize = 2
+          XValues.Name = 'X'
+          XValues.Order = loAscending
+          YValues.Name = 'Y'
+          YValues.Order = loNone
+        end
+        object Series76: TPointSeries
+          HoverElement = [heCurrent]
+          ClickableLine = False
+          Pointer.Brush.Color = clRed
+          Pointer.HorizSize = 2
+          Pointer.InflateMargins = True
+          Pointer.Pen.Color = clRed
+          Pointer.Style = psRectangle
+          Pointer.VertSize = 2
+          XValues.Name = 'X'
+          XValues.Order = loAscending
+          YValues.Name = 'Y'
+          YValues.Order = loNone
+        end
+        object Series77: TPointSeries
+          HoverElement = [heCurrent]
+          ClickableLine = False
+          Pointer.Brush.Color = clRed
+          Pointer.HorizSize = 2
+          Pointer.InflateMargins = True
+          Pointer.Pen.Color = clRed
+          Pointer.Style = psRectangle
+          Pointer.VertSize = 2
+          XValues.Name = 'X'
+          XValues.Order = loAscending
+          YValues.Name = 'Y'
+          YValues.Order = loNone
+        end
+        object Series78: TPointSeries
+          HoverElement = [heCurrent]
+          ClickableLine = False
+          Pointer.Brush.Color = clRed
+          Pointer.HorizSize = 2
+          Pointer.InflateMargins = True
+          Pointer.Pen.Color = clRed
+          Pointer.Style = psRectangle
+          Pointer.VertSize = 2
+          XValues.Name = 'X'
+          XValues.Order = loAscending
+          YValues.Name = 'Y'
+          YValues.Order = loNone
+        end
+        object Series79: TPointSeries
+          HoverElement = [heCurrent]
+          ClickableLine = False
+          Pointer.Brush.Color = clRed
+          Pointer.HorizSize = 2
+          Pointer.InflateMargins = True
+          Pointer.Pen.Color = clRed
+          Pointer.Style = psRectangle
+          Pointer.VertSize = 2
+          XValues.Name = 'X'
+          XValues.Order = loAscending
+          YValues.Name = 'Y'
+          YValues.Order = loNone
+        end
+        object Series80: TPointSeries
+          HoverElement = [heCurrent]
+          ClickableLine = False
+          Pointer.Brush.Color = clRed
+          Pointer.HorizSize = 2
+          Pointer.InflateMargins = True
+          Pointer.Pen.Color = clRed
+          Pointer.Style = psRectangle
+          Pointer.VertSize = 2
+          XValues.Name = 'X'
+          XValues.Order = loAscending
+          YValues.Name = 'Y'
+          YValues.Order = loNone
+        end
+        object Series81: TPointSeries
+          HoverElement = [heCurrent]
+          ClickableLine = False
+          Pointer.Brush.Color = clRed
+          Pointer.HorizSize = 2
+          Pointer.InflateMargins = True
+          Pointer.Pen.Color = clRed
+          Pointer.Style = psRectangle
+          Pointer.VertSize = 2
+          XValues.Name = 'X'
+          XValues.Order = loAscending
+          YValues.Name = 'Y'
+          YValues.Order = loNone
+        end
+        object Series82: TPointSeries
+          HoverElement = [heCurrent]
+          ClickableLine = False
+          Pointer.Brush.Color = clRed
+          Pointer.HorizSize = 2
+          Pointer.InflateMargins = True
+          Pointer.Pen.Color = clRed
+          Pointer.Style = psRectangle
+          Pointer.VertSize = 2
+          XValues.Name = 'X'
+          XValues.Order = loAscending
+          YValues.Name = 'Y'
+          YValues.Order = loNone
+        end
+        object Series83: TPointSeries
+          HoverElement = [heCurrent]
+          ClickableLine = False
+          Pointer.Brush.Color = clRed
+          Pointer.HorizSize = 2
+          Pointer.InflateMargins = True
+          Pointer.Pen.Color = clRed
+          Pointer.Style = psRectangle
+          Pointer.VertSize = 2
+          XValues.Name = 'X'
+          XValues.Order = loAscending
+          YValues.Name = 'Y'
+          YValues.Order = loNone
+        end
+        object Series84: TPointSeries
+          HoverElement = [heCurrent]
+          ClickableLine = False
+          Pointer.Brush.Color = clRed
+          Pointer.HorizSize = 2
+          Pointer.InflateMargins = True
+          Pointer.Pen.Color = clRed
+          Pointer.Style = psRectangle
+          Pointer.VertSize = 2
+          XValues.Name = 'X'
+          XValues.Order = loAscending
+          YValues.Name = 'Y'
+          YValues.Order = loNone
+        end
+        object Series85: TPointSeries
+          HoverElement = [heCurrent]
+          ClickableLine = False
+          Pointer.Brush.Color = clRed
+          Pointer.HorizSize = 2
+          Pointer.InflateMargins = True
+          Pointer.Pen.Color = clRed
+          Pointer.Style = psRectangle
+          Pointer.VertSize = 2
+          XValues.Name = 'X'
+          XValues.Order = loAscending
+          YValues.Name = 'Y'
+          YValues.Order = loNone
+        end
+        object Series86: TPointSeries
+          HoverElement = [heCurrent]
+          ClickableLine = False
+          Pointer.Brush.Color = clRed
+          Pointer.HorizSize = 2
+          Pointer.InflateMargins = True
+          Pointer.Pen.Color = clRed
+          Pointer.Style = psRectangle
+          Pointer.VertSize = 2
+          XValues.Name = 'X'
+          XValues.Order = loAscending
+          YValues.Name = 'Y'
+          YValues.Order = loNone
+        end
+        object Series87: TPointSeries
+          HoverElement = [heCurrent]
+          ClickableLine = False
+          Pointer.Brush.Color = clRed
+          Pointer.HorizSize = 2
+          Pointer.InflateMargins = True
+          Pointer.Pen.Color = clRed
+          Pointer.Style = psRectangle
+          Pointer.VertSize = 2
+          XValues.Name = 'X'
+          XValues.Order = loAscending
+          YValues.Name = 'Y'
+          YValues.Order = loNone
+        end
+        object Series88: TPointSeries
+          HoverElement = [heCurrent]
+          ClickableLine = False
+          Pointer.Brush.Color = clRed
+          Pointer.HorizSize = 2
+          Pointer.InflateMargins = True
+          Pointer.Pen.Color = clRed
+          Pointer.Style = psRectangle
+          Pointer.VertSize = 2
+          XValues.Name = 'X'
+          XValues.Order = loAscending
+          YValues.Name = 'Y'
+          YValues.Order = loNone
+        end
+        object Series89: TPointSeries
+          HoverElement = [heCurrent]
+          ClickableLine = False
+          Pointer.Brush.Color = clRed
+          Pointer.HorizSize = 2
+          Pointer.InflateMargins = True
+          Pointer.Pen.Color = clRed
+          Pointer.Style = psRectangle
+          Pointer.VertSize = 2
+          XValues.Name = 'X'
+          XValues.Order = loAscending
+          YValues.Name = 'Y'
+          YValues.Order = loNone
+        end
+        object Series90: TPointSeries
+          HoverElement = [heCurrent]
+          ClickableLine = False
+          Pointer.Brush.Color = clRed
+          Pointer.HorizSize = 2
+          Pointer.InflateMargins = True
+          Pointer.Pen.Color = clRed
+          Pointer.Style = psRectangle
+          Pointer.VertSize = 2
+          XValues.Name = 'X'
+          XValues.Order = loAscending
+          YValues.Name = 'Y'
+          YValues.Order = loNone
+        end
+        object Series91: TPointSeries
+          HoverElement = [heCurrent]
+          ClickableLine = False
+          Pointer.Brush.Color = clRed
+          Pointer.HorizSize = 2
+          Pointer.InflateMargins = True
+          Pointer.Pen.Color = clRed
+          Pointer.Style = psRectangle
+          Pointer.VertSize = 2
+          XValues.Name = 'X'
+          XValues.Order = loAscending
+          YValues.Name = 'Y'
+          YValues.Order = loNone
+        end
+        object Series92: TPointSeries
+          HoverElement = [heCurrent]
+          ClickableLine = False
+          Pointer.Brush.Color = clRed
+          Pointer.HorizSize = 2
+          Pointer.InflateMargins = True
+          Pointer.Pen.Color = clRed
+          Pointer.Style = psRectangle
+          Pointer.VertSize = 2
+          XValues.Name = 'X'
+          XValues.Order = loAscending
+          YValues.Name = 'Y'
+          YValues.Order = loNone
+        end
+        object Series93: TPointSeries
+          HoverElement = [heCurrent]
+          ClickableLine = False
+          Pointer.Brush.Color = clRed
+          Pointer.HorizSize = 2
+          Pointer.InflateMargins = True
+          Pointer.Pen.Color = clRed
+          Pointer.Style = psRectangle
+          Pointer.VertSize = 2
+          XValues.Name = 'X'
+          XValues.Order = loAscending
+          YValues.Name = 'Y'
+          YValues.Order = loNone
+        end
+        object Series94: TPointSeries
+          HoverElement = [heCurrent]
+          ClickableLine = False
+          Pointer.Brush.Color = clRed
+          Pointer.HorizSize = 2
+          Pointer.InflateMargins = True
+          Pointer.Pen.Color = clRed
+          Pointer.Style = psRectangle
+          Pointer.VertSize = 2
+          XValues.Name = 'X'
+          XValues.Order = loAscending
+          YValues.Name = 'Y'
+          YValues.Order = loNone
+        end
+        object Series95: TPointSeries
+          HoverElement = [heCurrent]
+          ClickableLine = False
+          Pointer.Brush.Color = clRed
+          Pointer.HorizSize = 2
+          Pointer.InflateMargins = True
+          Pointer.Pen.Color = clRed
+          Pointer.Style = psRectangle
+          Pointer.VertSize = 2
+          XValues.Name = 'X'
+          XValues.Order = loAscending
+          YValues.Name = 'Y'
+          YValues.Order = loNone
+        end
+        object Series96: TPointSeries
+          HoverElement = [heCurrent]
+          ClickableLine = False
+          Pointer.Brush.Color = clRed
+          Pointer.HorizSize = 2
+          Pointer.InflateMargins = True
+          Pointer.Pen.Color = clRed
+          Pointer.Style = psRectangle
+          Pointer.VertSize = 2
+          XValues.Name = 'X'
+          XValues.Order = loAscending
+          YValues.Name = 'Y'
+          YValues.Order = loNone
+        end
+        object Series97: TPointSeries
+          HoverElement = [heCurrent]
+          ClickableLine = False
+          Pointer.Brush.Color = clRed
+          Pointer.HorizSize = 2
+          Pointer.InflateMargins = True
+          Pointer.Pen.Color = clRed
+          Pointer.Style = psRectangle
+          Pointer.VertSize = 2
+          XValues.Name = 'X'
+          XValues.Order = loAscending
+          YValues.Name = 'Y'
+          YValues.Order = loNone
+        end
+        object Series98: TPointSeries
+          HoverElement = [heCurrent]
+          ClickableLine = False
+          Pointer.Brush.Color = clRed
+          Pointer.HorizSize = 2
+          Pointer.InflateMargins = True
+          Pointer.Pen.Color = clRed
+          Pointer.Style = psRectangle
+          Pointer.VertSize = 2
+          XValues.Name = 'X'
+          XValues.Order = loAscending
+          YValues.Name = 'Y'
+          YValues.Order = loNone
+        end
+        object Series99: TPointSeries
+          HoverElement = [heCurrent]
+          ClickableLine = False
+          Pointer.Brush.Color = clRed
+          Pointer.HorizSize = 2
+          Pointer.InflateMargins = True
+          Pointer.Pen.Color = clRed
+          Pointer.Style = psRectangle
+          Pointer.VertSize = 2
+          XValues.Name = 'X'
+          XValues.Order = loAscending
+          YValues.Name = 'Y'
+          YValues.Order = loNone
+        end
+        object Series100: TPointSeries
+          HoverElement = [heCurrent]
+          ClickableLine = False
+          Pointer.Brush.Color = clRed
+          Pointer.HorizSize = 2
+          Pointer.InflateMargins = True
+          Pointer.Pen.Color = clRed
+          Pointer.Style = psRectangle
+          Pointer.VertSize = 2
+          XValues.Name = 'X'
+          XValues.Order = loAscending
+          YValues.Name = 'Y'
+          YValues.Order = loNone
+        end
+        object Series101: TPointSeries
+          HoverElement = [heCurrent]
+          ClickableLine = False
+          Pointer.Brush.Color = clRed
+          Pointer.HorizSize = 2
+          Pointer.InflateMargins = True
+          Pointer.Pen.Color = clRed
+          Pointer.Style = psRectangle
+          Pointer.VertSize = 2
+          XValues.Name = 'X'
+          XValues.Order = loAscending
+          YValues.Name = 'Y'
+          YValues.Order = loNone
+        end
+      end
+      object Signals_Tab_Refresh_Button: TButton
+        Left = 330
+        Top = 3
+        Width = 78
+        Height = 35
+        Caption = 'Refresh'
+        TabOrder = 1
+        OnClick = Signals_Tab_Refresh_ButtonClick
+      end
+      object Grid_Spacing_Edit: TEdit
+        Left = 209
+        Top = 14
+        Width = 55
+        Height = 29
+        TabOrder = 2
+        Text = '4'
+      end
+      object SC_RadioGroup: TRadioGroup
+        Left = 624
+        Top = -3
+        Width = 189
+        Height = 120
+        Caption = 'Displayed'
+        ItemIndex = 0
+        Items.Strings = (
+          'Signal'
+          'Phase'
+          'Signal+Phase'
+          'Arrows')
+        TabOrder = 3
+        OnClick = SC_RadioGroupClick
+      end
+      object Record_Potentials_CheckBox: TCheckBox
+        Left = 17
+        Top = 51
+        Width = 186
+        Height = 29
+        Caption = 'Record potentials'
+        Font.Charset = DEFAULT_CHARSET
+        Font.Color = clWindowText
+        Font.Height = -18
+        Font.Name = 'Tahoma'
+        Font.Style = [fsBold]
+        ParentFont = False
+        TabOrder = 4
+      end
+      object Sampling_Edit: TEdit
+        Left = 86
+        Top = 86
+        Width = 60
+        Height = 29
+        TabOrder = 5
+        Text = '0.25'
+      end
+      object Clear_Sig_History_Button: TButton
+        Left = 153
+        Top = 87
+        Width = 77
+        Height = 27
+        Caption = 'Clear'
+        TabOrder = 6
+        OnClick = Clear_Sig_History_ButtonClick
+      end
+      object VS_Gap_Edit: TEdit
+        Left = 332
+        Top = 44
+        Width = 55
+        Height = 29
+        TabOrder = 7
+        Text = '1'
+      end
+      object Signal_Type_To_Record_RadioGroup: TRadioGroup
+        Left = 414
+        Top = -3
+        Width = 204
+        Height = 107
+        Caption = 'Signal to record'
+        ItemIndex = 0
+        Items.Strings = (
+          'Voltage'
+          'Unipolar electrogram'
+          'Bipolar electrogram')
+        TabOrder = 8
+      end
+      object CL_Chart: TChart
+        Left = 473
+        Top = 780
+        Width = 600
+        Height = 375
+        Margins.Left = 5
+        Margins.Top = 5
+        Margins.Right = 5
+        Margins.Bottom = 5
+        Legend.Visible = False
+        Title.Text.Strings = (
+          'Correlation length')
+        View3D = False
+        View3DOptions.FontZoom = 150
+        TabOrder = 9
+        DefaultCanvas = 'TGDIPlusCanvas'
+        ColorPaletteIndex = 13
+        object Series38: TLineSeries
+          HoverElement = [heCurrent]
+          Brush.BackColor = clDefault
+          Pointer.InflateMargins = True
+          Pointer.Style = psRectangle
+          XValues.Name = 'X'
+          XValues.Order = loAscending
+          YValues.Name = 'Y'
+          YValues.Order = loNone
+        end
+        object Series39: TLineSeries
+          HoverElement = [heCurrent]
+          Brush.BackColor = clDefault
+          Pointer.InflateMargins = True
+          Pointer.Style = psRectangle
+          XValues.Name = 'X'
+          XValues.Order = loAscending
+          YValues.Name = 'Y'
+          YValues.Order = loNone
+        end
+      end
+      object CL_W_Size_Edit: TEdit
+        Left = 1014
+        Top = 14
+        Width = 56
+        Height = 29
+        TabOrder = 10
+        Text = '200'
+      end
+      object CL_W_Step_Edit: TEdit
+        Left = 1014
+        Top = 48
+        Width = 56
+        Height = 29
+        TabOrder = 11
+        Text = '5'
+      end
+      object Corr_L_CheckBox: TCheckBox
+        Left = 21
+        Top = 123
+        Width = 254
+        Height = 25
+        Margins.Left = 5
+        Margins.Top = 5
+        Margins.Right = 5
+        Margins.Bottom = 5
+        Caption = 'Automatic realculation of Corr L'
+        TabOrder = 12
+      end
+      object Recalculate_CL_Button: TButton
+        Left = 587
+        Top = 165
+        Width = 136
+        Height = 27
+        Caption = 'Recalculate CL'
+        TabOrder = 13
+        OnClick = Recalculate_CL_ButtonClick
+      end
+      object Basic_CL_Edit: TEdit
+        Left = 1013
+        Top = 81
+        Width = 55
+        Height = 29
+        TabOrder = 14
+        Text = '5'
+      end
+      object Calculation_Target_RadioGroup: TRadioGroup
+        Left = 288
+        Top = 110
+        Width = 293
+        Height = 82
+        Caption = 'Calculate:'
+        ItemIndex = 0
+        Items.Strings = (
+          'Mean phase coherence'
+          'Correlation length')
+        TabOrder = 15
+        OnClick = Calculation_Target_RadioGroupClick
+      end
+      object MPC_Dist_Chart: TChart
+        Left = 27
+        Top = 780
+        Width = 392
+        Height = 375
+        Margins.Left = 5
+        Margins.Top = 5
+        Margins.Right = 5
+        Margins.Bottom = 5
+        Legend.Visible = False
+        Title.Text.Strings = (
+          'Angle/MPC vs. Dist')
+        BottomAxis.Title.Caption = 'Distnance'
+        LeftAxis.Title.Caption = 'MPC/Corr'
+        View3D = False
+        View3DOptions.FontZoom = 150
+        PopupMenu = PopupMenu_mpc_vs_dist
+        TabOrder = 16
+        DefaultCanvas = 'TGDIPlusCanvas'
+        ColorPaletteIndex = 13
+        object LineSeries3: TPointSeries
+          HoverElement = [heCurrent]
+          ClickableLine = False
+          Pointer.HorizSize = 1
+          Pointer.InflateMargins = True
+          Pointer.Pen.Visible = False
+          Pointer.Style = psRectangle
+          Pointer.VertSize = 1
+          XValues.Name = 'X'
+          XValues.Order = loAscending
+          YValues.Name = 'Y'
+          YValues.Order = loNone
+        end
+        object LineSeries4: TLineSeries
+          HoverElement = [heCurrent]
+          SeriesColor = clRed
+          Brush.BackColor = clDefault
+          LinePen.Width = 3
+          Pointer.HorizSize = 1
+          Pointer.InflateMargins = True
+          Pointer.Style = psRectangle
+          Pointer.VertSize = 1
+          XValues.Name = 'X'
+          XValues.Order = loAscending
+          YValues.Name = 'Y'
+          YValues.Order = loNone
+        end
+      end
+      object Angle_vs_distance_Button: TButton
+        Left = 729
+        Top = 165
+        Width = 257
+        Height = 27
+        Caption = 'Get angle vs. distance scatter'
+        TabOrder = 17
+        OnClick = Angle_vs_distance_ButtonClick
+      end
+      object Recalculate_Phase_Button: TButton
+        Left = 587
+        Top = 132
+        Width = 171
+        Height = 27
+        Caption = 'Recalculate phase'
+        TabOrder = 18
+        OnClick = Recalculate_Phase_ButtonClick
+      end
+      object Phase_vs_Distance_Source_RadioGroup: TRadioGroup
+        Left = 1076
+        Top = 3
+        Width = 292
+        Height = 113
+        Caption = 'phase vs. distance source'
+        ItemIndex = 2
+        Items.Strings = (
+          'CV vector orientation'
+          'activation phase'
+          'MPC between phase signals')
+        TabOrder = 19
+      end
+      object Corr_Dist_Scatter_Type_RadioGroup: TRadioGroup
+        Left = 1016
+        Top = 122
+        Width = 180
+        Height = 88
+        Caption = 'normal or loglog'
+        ItemIndex = 0
+        Items.Strings = (
+          'normal'
+          'log-log')
+        TabOrder = 20
+      end
+      object Calculate_MPC_Button: TButton
+        Left = 779
+        Top = 132
+        Width = 171
+        Height = 27
+        Caption = 'Calculate MPC'
+        TabOrder = 21
+      end
+    end
+    object TabSheet2: TTabSheet
+      Caption = 'Display'
+      ImageIndex = 1
+      object Z_Slice_Label: TLabel
+        Left = 11
+        Top = 534
+        Width = 59
+        Height = 21
+        Caption = 'Z slice: '
+      end
+      object T_Slice_Label: TLabel
+        Left = 11
+        Top = 608
+        Width = 54
+        Height = 21
+        Caption = 'T slice:'
+      end
+      object Label28: TLabel
+        Left = 321
+        Top = 102
+        Width = 26
+        Height = 21
+        Caption = 'Min'
+      end
+      object Label29: TLabel
+        Left = 321
+        Top = 135
+        Width = 30
+        Height = 21
+        Caption = 'Max'
+      end
+      object Label8: TLabel
+        Left = 552
+        Top = 24
+        Width = 85
+        Height = 21
+        Margins.Left = 5
+        Margins.Top = 5
+        Margins.Right = 5
+        Margins.Bottom = 5
+        Caption = 'Arrow size:'
+      end
+      object Label51: TLabel
+        Left = 539
+        Top = 77
+        Width = 229
+        Height = 21
+        Margins.Left = 5
+        Margins.Top = 5
+        Margins.Right = 5
+        Margins.Bottom = 5
+        Caption = 'Arrow density (mesh spacing):'
+      end
+      object Display_Type_RadioGroup: TRadioGroup
+        Left = 17
+        Top = 3
+        Width = 141
+        Height = 80
+        Caption = 'Geo type'
+        ItemIndex = 0
+        Items.Strings = (
+          '2D slice/2 layers'
+          '3D volume')
+        TabOrder = 0
+        OnClick = Display_Type_RadioGroupClick
+      end
+      object Variables_Plot_Chart: TChart
+        Left = 3
+        Top = 338
+        Width = 411
+        Height = 190
+        Legend.Visible = False
+        Title.Text.Strings = (
+          '')
+        View3D = False
+        View3DOptions.FontZoom = 150
+        TabOrder = 1
+        DefaultCanvas = 'TGDIPlusCanvas'
+        PrintMargins = (
+          15
+          27
+          15
+          27)
+        ColorPaletteIndex = 13
+        object Series1: TFastLineSeries
+          HoverElement = []
+          LinePen.Color = 10708548
+          XValues.Name = 'X'
+          XValues.Order = loAscending
+          YValues.Name = 'Y'
+          YValues.Order = loNone
+        end
+        object Series2: TFastLineSeries
+          HoverElement = []
+          LinePen.Color = 3513587
+          XValues.Name = 'X'
+          XValues.Order = loAscending
+          YValues.Name = 'Y'
+          YValues.Order = loNone
+        end
+      end
+      object Plot_Variables_CheckBox: TCheckBox
+        Left = 3
+        Top = 312
+        Width = 165
+        Height = 20
+        Caption = 'Plot variables'
+        TabOrder = 2
+      end
+      object Clear_Variables_Plot_Button: TButton
+        Left = 420
+        Top = 426
+        Width = 77
+        Height = 26
+        Caption = 'Clear'
+        TabOrder = 3
+        OnClick = Clear_Variables_Plot_ButtonClick
+      end
+      object Z_Slice_TrackBar: TTrackBar
+        Left = 3
+        Top = 560
+        Width = 305
+        Height = 46
+        Max = 100
+        TabOrder = 4
+        ThumbLength = 30
+        OnChange = Z_Slice_TrackBarChange
+      end
+      object T_Slice_TrackBar: TTrackBar
+        Left = 3
+        Top = 633
+        Width = 305
+        Height = 47
+        Max = 100
+        TabOrder = 5
+        ThumbLength = 30
+        OnChange = T_Slice_TrackBarChange
+      end
+      object Export_Sig_Plot_Button: TButton
+        Left = 503
+        Top = 426
+        Width = 76
+        Height = 26
+        Caption = 'Export'
+        TabOrder = 6
+        OnClick = Export_Sig_Plot_ButtonClick
+      end
+      object Display_Value_RadioGroup: TRadioGroup
+        Left = 164
+        Top = 3
+        Width = 150
+        Height = 329
+        Caption = 'Display type'
+        ItemIndex = 0
+        Items.Strings = (
+          'Voltage'
+          'Coupling DX'
+          'Coupling DY'
+          'mi1'
+          'mi2'
+          'Custom Value'
+          'Betw layer coupling'
+          'History'
+          'Phase map'
+          'MPC (grid based)')
+        TabOrder = 7
+        OnClick = Display_Value_RadioGroupClick
+      end
+      object Display_Sim_CheckBox: TCheckBox
+        Left = 320
+        Top = 8
+        Width = 175
+        Height = 18
+        Caption = 'Display simulation'
+        Checked = True
+        State = cbChecked
+        TabOrder = 8
+      end
+      object Plot_Source_RadioGroup: TRadioGroup
+        Left = 420
+        Top = 312
+        Width = 189
+        Height = 108
+        Caption = 'Plot_Source_RadioGroup'
+        ItemIndex = 0
+        Items.Strings = (
+          'Voltage+Current'
+          'Total excited area')
+        TabOrder = 9
+      end
+      object Min_Disp_Val_Edit: TEdit
+        Left = 353
+        Top = 99
+        Width = 42
+        Height = 29
+        TabOrder = 10
+        Text = '0.5'
+      end
+      object Max_Disp_Val_Edit: TEdit
+        Left = 353
+        Top = 132
+        Width = 42
+        Height = 29
+        TabOrder = 11
+        Text = '1'
+      end
+      object Set_Custom_Color_Range_Button: TButton
+        Left = 402
+        Top = 134
+        Width = 77
+        Height = 25
+        Caption = 'Set'
+        TabOrder = 12
+        OnClick = Set_Custom_Color_Range_ButtonClick
+      end
+      object Display_Conduction_Arrows_Mean_CheckBox: TCheckBox
+        Left = 320
+        Top = 44
+        Width = 175
+        Height = 18
+        Caption = 'Display simulation'
+        Checked = True
+        State = cbChecked
+        TabOrder = 13
+      end
+      object Arrow_Size_Edit: TEdit
+        Left = 654
+        Top = 20
+        Width = 80
+        Height = 29
+        Margins.Left = 5
+        Margins.Top = 5
+        Margins.Right = 5
+        Margins.Bottom = 5
+        TabOrder = 14
+        Text = '20'
+      end
+      object Arrow_Mesh_Spacing_Edit: TEdit
+        Left = 678
+        Top = 105
+        Width = 80
+        Height = 29
+        Margins.Left = 5
+        Margins.Top = 5
+        Margins.Right = 5
+        Margins.Bottom = 5
+        TabOrder = 15
+        Text = '5'
+      end
+    end
+    object TabSheet3: TTabSheet
+      Caption = 'ISIs'
+      ImageIndex = 2
+      object Label27: TLabel
+        Left = 444
+        Top = 8
+        Width = 28
+        Height = 21
+        Caption = 'BCL'
+      end
+      object Value_Label: TLabel
+        Left = 558
+        Top = 8
+        Width = 47
+        Height = 21
+        Caption = 'Value:'
+      end
+      object Signal_Display_ScrollBar: TScrollBar
+        Left = 3
+        Top = 479
+        Width = 453
+        Height = 24
+        PageSize = 0
+        TabOrder = 0
+      end
+      object Single_Signal_Chart: TChart
+        Left = 3
+        Top = 38
+        Width = 411
+        Height = 214
+        Legend.Visible = False
+        Title.Text.Strings = (
+          'Voltage')
+        View3D = False
+        View3DOptions.FontZoom = 150
+        TabOrder = 1
+        DefaultCanvas = 'TGDIPlusCanvas'
+        ColorPaletteIndex = 13
+        object Series3: TLineSeries
+          HoverElement = [heCurrent]
+          SeriesColor = -1
+          Brush.BackColor = clDefault
+          Pointer.InflateMargins = True
+          Pointer.Style = psRectangle
+          XValues.Name = 'X'
+          XValues.Order = loAscending
+          YValues.Name = 'Y'
+          YValues.Order = loNone
+        end
+        object Series35: TLineSeries
+          HoverElement = [heCurrent]
+          SeriesColor = 33023
+          Brush.BackColor = clDefault
+          Pointer.InflateMargins = True
+          Pointer.Style = psRectangle
+          XValues.Name = 'X'
+          XValues.Order = loAscending
+          YValues.Name = 'Y'
+          YValues.Order = loNone
+        end
+      end
+      object ISIs_Chart: TChart
+        Left = 3
+        Top = 258
+        Width = 411
+        Height = 215
+        Legend.Visible = False
+        Title.Text.Strings = (
+          'Inter Spike Intervals (ISI)')
+        View3D = False
+        View3DOptions.FontZoom = 150
+        TabOrder = 2
+        DefaultCanvas = 'TGDIPlusCanvas'
+        ColorPaletteIndex = 13
+        object LineSeries1: TLineSeries
+          HoverElement = [heCurrent]
+          SeriesColor = -1
+          Brush.BackColor = clDefault
+          Pointer.Brush.Gradient.EndColor = -1
+          Pointer.Gradient.EndColor = -1
+          Pointer.InflateMargins = True
+          Pointer.Style = psRectangle
+          Pointer.Visible = True
+          XValues.Name = 'X'
+          XValues.Order = loAscending
+          YValues.Name = 'Y'
+          YValues.Order = loNone
+        end
+        object Series37: TPointSeries
+          HoverElement = [heCurrent]
+          SeriesColor = clRed
+          ClickableLine = False
+          Pointer.Brush.Gradient.EndColor = clRed
+          Pointer.Gradient.EndColor = clRed
+          Pointer.InflateMargins = True
+          Pointer.Style = psRectangle
+          XValues.Name = 'X'
+          XValues.Order = loAscending
+          YValues.Name = 'Y'
+          YValues.Order = loNone
+        end
+      end
+      object Paramter_Selection_RadioGroup: TRadioGroup
+        Left = 3
+        Top = 509
+        Width = 297
+        Height = 108
+        Caption = 'Parameter selection'
+        Columns = 2
+        Items.Strings = (
+          'Mean'
+          'SD'
+          'Porta'#39's Index'
+          'Voltage cross-corr')
+        TabOrder = 3
+        OnClick = Paramter_Selection_RadioGroupClick
+      end
+      object ISIs_Parameters_Chart: TChart
+        Left = 3
+        Top = 623
+        Width = 411
+        Height = 214
+        Legend.Visible = False
+        Title.Text.Strings = (
+          '')
+        View3D = False
+        View3DOptions.FontZoom = 150
+        TabOrder = 4
+        DefaultCanvas = 'TGDIPlusCanvas'
+        ColorPaletteIndex = 13
+        object LineSeries2: TLineSeries
+          HoverElement = [heCurrent]
+          SeriesColor = -1
+          Brush.BackColor = clDefault
+          Pointer.Brush.Gradient.EndColor = -1
+          Pointer.Gradient.EndColor = -1
+          Pointer.InflateMargins = True
+          Pointer.Style = psRectangle
+          Pointer.Visible = True
+          XValues.Name = 'X'
+          XValues.Order = loAscending
+          YValues.Name = 'Y'
+          YValues.Order = loNone
+        end
+      end
+      object Update_Par_Button: TButton
+        Left = 306
+        Top = 518
+        Width = 77
+        Height = 58
+        Caption = 'Update'
+        TabOrder = 5
+        OnClick = Update_Par_ButtonClick
+      end
+      object BCL_Edit: TEdit
+        Left = 477
+        Top = 3
+        Width = 60
+        Height = 29
+        TabOrder = 6
+        Text = '50'
+      end
+    end
+    object TabSheet4: TTabSheet
+      Caption = 'Modulation'
+      ImageIndex = 3
+      object Label2: TLabel
+        Left = 83
+        Top = 24
+        Width = 50
+        Height = 21
+        Caption = 'Length'
+      end
+      object Label3: TLabel
+        Left = 57
+        Top = 51
+        Width = 75
+        Height = 21
+        Caption = 'Amplitude'
+      end
+      object Label4: TLabel
+        Left = 18
+        Top = 81
+        Width = 117
+        Height = 21
+        Caption = 'Assymetry ratio'
+      end
+      object Label5: TLabel
+        Left = 3
+        Top = 110
+        Width = 145
+        Height = 21
+        Caption = 'Region relative size'
+      end
+      object Label12: TLabel
+        Left = 83
+        Top = 177
+        Width = 75
+        Height = 21
+        Caption = 'Amplitude'
+      end
+      object Label13: TLabel
+        Left = 71
+        Top = 203
+        Width = 96
+        Height = 21
+        Caption = 'Pperiod [ms]'
+      end
+      object Label19: TLabel
+        Left = 83
+        Top = 263
+        Width = 91
+        Height = 21
+        Caption = 'mi1 left side'
+      end
+      object Label20: TLabel
+        Left = 83
+        Top = 288
+        Width = 91
+        Height = 21
+        Caption = 'mi2 left side'
+      end
+      object Label21: TLabel
+        Left = 83
+        Top = 324
+        Width = 101
+        Height = 21
+        Caption = 'mi1 right side'
+      end
+      object Label22: TLabel
+        Left = 83
+        Top = 353
+        Width = 101
+        Height = 21
+        Caption = 'mi2 right side'
+      end
+      object Label23: TLabel
+        Left = 54
+        Top = 383
+        Width = 135
+        Height = 21
+        Caption = 'Ratio where cut is'
+      end
+      object Label24: TLabel
+        Left = 635
+        Top = 62
+        Width = 50
+        Height = 21
+        Caption = 'Radius'
+      end
+      object Label25: TLabel
+        Left = 632
+        Top = 93
+        Width = 58
+        Height = 21
+        Caption = 'Number'
+      end
+      object Label26: TLabel
+        Left = 558
+        Top = 24
+        Width = 290
+        Height = 21
+        Caption = 'Random disks (of breakup parameters)'
+      end
+      object Label30: TLabel
+        Left = 18
+        Top = 468
+        Width = 290
+        Height = 21
+        Caption = 'INHOMOGENEOUS LANDSCAPE (I,R,p)'
+      end
+      object Label31: TLabel
+        Left = 42
+        Top = 603
+        Width = 50
+        Height = 21
+        Caption = 'Radius'
+      end
+      object Label32: TLabel
+        Left = 14
+        Top = 635
+        Width = 77
+        Height = 21
+        Caption = 'probability'
+      end
+      object Label33: TLabel
+        Left = 47
+        Top = 671
+        Width = 45
+        Height = 21
+        Caption = 'Depth'
+      end
+      object Label34: TLabel
+        Left = 204
+        Top = 599
+        Width = 27
+        Height = 21
+        Caption = 'min'
+      end
+      object Label35: TLabel
+        Left = 201
+        Top = 624
+        Width = 31
+        Height = 21
+        Caption = 'max'
+      end
+      object Label59: TLabel
+        Left = 43
+        Top = 804
+        Width = 87
+        Height = 21
+        Margins.Left = 5
+        Margins.Top = 5
+        Margins.Right = 5
+        Margins.Bottom = 5
+        Caption = 'period [ms]'
+      end
+      object Asm_Len_Edit: TEdit
+        Left = 138
+        Top = 17
+        Width = 60
+        Height = 29
+        TabOrder = 0
+        Text = '10'
+      end
+      object Asm_Amp_Edit: TEdit
+        Left = 138
+        Top = 47
+        Width = 60
+        Height = 29
+        TabOrder = 1
+        Text = '0.0005'
+      end
+      object Ass_Ratio_Edit: TEdit
+        Left = 138
+        Top = 77
+        Width = 60
+        Height = 29
+        TabOrder = 2
+        Text = '0.2'
+      end
+      object Add_Assymetric_Modulation_CheckBox: TCheckBox
+        Left = 219
+        Top = 21
+        Width = 333
+        Height = 18
+        Caption = 'Assymetric triangular voltage modulation'
+        TabOrder = 3
+        OnClick = Add_Assymetric_Modulation_CheckBoxClick
+      end
+      object Ass_Region_Size_Edit: TEdit
+        Left = 149
+        Top = 107
+        Width = 61
+        Height = 29
+        TabOrder = 4
+        Text = '0.5'
+      end
+      object CMA_Edit: TEdit
+        Left = 171
+        Top = 170
+        Width = 60
+        Height = 29
+        TabOrder = 5
+        Text = '0.0001'
+      end
+      object CML_Edit: TEdit
+        Left = 171
+        Top = 203
+        Width = 62
+        Height = 29
+        TabOrder = 6
+        Text = '40'
+      end
+      object Add_Current_Modulation_CheckBox: TCheckBox
+        Left = 254
+        Top = 174
+        Width = 313
+        Height = 18
+        Caption = 'abs(sin(om*T)) voltage modulation'
+        TabOrder = 7
+        OnClick = Add_Current_Modulation_CheckBoxClick
+      end
+      object mi1_left_Edit: TEdit
+        Left = 188
+        Top = 260
+        Width = 60
+        Height = 29
+        TabOrder = 8
+        Text = '0.2'
+      end
+      object mi2_left_Edit: TEdit
+        Left = 188
+        Top = 290
+        Width = 61
+        Height = 29
+        TabOrder = 9
+        Text = '0.2'
+      end
+      object mi1_right_Edit: TEdit
+        Left = 189
+        Top = 320
+        Width = 60
+        Height = 29
+        TabOrder = 10
+        Text = '0.2'
+      end
+      object mi2_right_Edit: TEdit
+        Left = 189
+        Top = 350
+        Width = 60
+        Height = 29
+        TabOrder = 11
+        Text = '0.2'
+      end
+      object SET_MI_Button: TButton
+        Left = 255
+        Top = 353
+        Width = 84
+        Height = 57
+        Caption = 'SET'
+        TabOrder = 12
+        OnClick = SET_MI_ButtonClick
+      end
+      object Cut_ratio_mi_Edit: TEdit
+        Left = 189
+        Top = 378
+        Width = 60
+        Height = 29
+        TabOrder = 13
+        Text = '0.5'
+      end
+      object DR_Edit: TEdit
+        Left = 696
+        Top = 51
+        Width = 60
+        Height = 29
+        TabOrder = 14
+        Text = '10'
+      end
+      object DN_Edit: TEdit
+        Left = 696
+        Top = 84
+        Width = 60
+        Height = 29
+        TabOrder = 15
+        Text = '4'
+      end
+      object Generate_Random_Breakup_Rings_Button: TButton
+        Left = 762
+        Top = 66
+        Width = 78
+        Height = 47
+        Caption = 'Generate'
+        TabOrder = 16
+        OnClick = Generate_Random_Breakup_Rings_ButtonClick
+      end
+      object RL_Edit: TEdit
+        Left = 96
+        Top = 600
+        Width = 62
+        Height = 29
+        TabOrder = 17
+        Text = '10'
+      end
+      object ppL_Edit: TEdit
+        Left = 96
+        Top = 635
+        Width = 62
+        Height = 29
+        TabOrder = 18
+        Text = '0.01'
+      end
+      object Landscape_mi1_Button: TButton
+        Left = 164
+        Top = 657
+        Width = 135
+        Height = 47
+        Caption = 'Generate'
+        TabOrder = 19
+        OnClick = Landscape_mi1_ButtonClick
+      end
+      object IL_Edit: TEdit
+        Left = 96
+        Top = 668
+        Width = 62
+        Height = 29
+        TabOrder = 20
+        Text = '0.04'
+      end
+      object mi_min_Edit: TEdit
+        Left = 239
+        Top = 594
+        Width = 60
+        Height = 29
+        TabOrder = 21
+        Text = '0.02'
+      end
+      object mi_max_Edit: TEdit
+        Left = 239
+        Top = 623
+        Width = 60
+        Height = 29
+        TabOrder = 22
+        Text = '0.2'
+      end
+      object Gen2_Button: TButton
+        Left = 846
+        Top = 51
+        Width = 132
+        Height = 62
+        Caption = 'Generate inversed'
+        TabOrder = 23
+        OnClick = Gen2_ButtonClick
+      end
+      object InhVar_RadioGroup: TRadioGroup
+        Left = 18
+        Top = 489
+        Width = 525
+        Height = 92
+        Caption = 'Variable'
+        ItemIndex = 0
+        Items.Strings = (
+          'Coupling (D)'
+          'mi1'
+          'mi2')
+        TabOrder = 24
+        OnClick = InhVar_RadioGroupClick
+      end
+      object Mimi2_Disk_Button: TButton
+        Left = 320
+        Top = 596
+        Width = 231
+        Height = 33
+        Caption = 'Centered disk (m1,mi2,R)'
+        TabOrder = 25
+        OnClick = Mimi2_Disk_ButtonClick
+      end
+      object Ectopy_In_Middle_CheckBox: TCheckBox
+        Left = 48
+        Top = 768
+        Width = 291
+        Height = 26
+        Margins.Left = 5
+        Margins.Top = 5
+        Margins.Right = 5
+        Margins.Bottom = 5
+        Caption = 'Ectopy in the middle'
+        Checked = True
+        State = cbChecked
+        TabOrder = 26
+      end
+      object Ectopy_CL_ms_Edit: TEdit
+        Left = 144
+        Top = 804
+        Width = 89
+        Height = 29
+        Margins.Left = 5
+        Margins.Top = 5
+        Margins.Right = 5
+        Margins.Bottom = 5
+        TabOrder = 27
+        Text = '40'
+      end
+    end
+    object Coupling: TTabSheet
+      Caption = 'Coupling'
+      ImageIndex = 4
+      object Label6: TLabel
+        Left = 21
+        Top = 99
+        Width = 58
+        Height = 21
+        Caption = 'Number'
+      end
+      object Label7: TLabel
+        Left = 24
+        Top = 132
+        Width = 50
+        Height = 21
+        Caption = 'Radius'
+      end
+      object Label10: TLabel
+        Left = 24
+        Top = 206
+        Width = 58
+        Height = 21
+        Caption = 'Number'
+      end
+      object Label11: TLabel
+        Left = 15
+        Top = 236
+        Width = 68
+        Height = 21
+        Caption = '% length'
+      end
+      object Label14: TLabel
+        Left = 3
+        Top = 12
+        Width = 258
+        Height = 21
+        Caption = 'Initial diffusion coef (X,Y direction)'
+      end
+      object Label15: TLabel
+        Left = 171
+        Top = 125
+        Width = 43
+        Height = 21
+        Caption = 'Width'
+      end
+      object Label16: TLabel
+        Left = 171
+        Top = 155
+        Width = 132
+        Height = 21
+        Caption = '% of max D more'
+      end
+      object Label17: TLabel
+        Left = 192
+        Top = 231
+        Width = 50
+        Height = 21
+        Caption = 'Radius'
+      end
+      object Label18: TLabel
+        Left = 15
+        Top = 266
+        Width = 53
+        Height = 21
+        Caption = '% of D'
+      end
+      object Label37: TLabel
+        Left = 192
+        Top = 281
+        Width = 43
+        Height = 21
+        Caption = 'Min D'
+      end
+      object Label38: TLabel
+        Left = 192
+        Top = 311
+        Width = 47
+        Height = 21
+        Caption = 'Max D'
+      end
+      object Label39: TLabel
+        Left = 3
+        Top = 374
+        Width = 187
+        Height = 21
+        Caption = 'INTER-LAYER COUPLING'
+      end
+      object Label40: TLabel
+        Left = 14
+        Top = 408
+        Width = 92
+        Height = 21
+        Caption = 'Min coupling'
+      end
+      object Label41: TLabel
+        Left = 12
+        Top = 434
+        Width = 96
+        Height = 21
+        Caption = 'Max coupling'
+      end
+      object Label42: TLabel
+        Left = 302
+        Top = 402
+        Width = 58
+        Height = 21
+        Caption = 'Number'
+      end
+      object Label43: TLabel
+        Left = 305
+        Top = 437
+        Width = 50
+        Height = 21
+        Caption = 'Radius'
+      end
+      object Label44: TLabel
+        Left = 171
+        Top = 402
+        Width = 125
+        Height = 21
+        Caption = 'Disk connections'
+      end
+      object NDiffv1_Edit: TEdit
+        Left = 86
+        Top = 96
+        Width = 46
+        Height = 29
+        TabOrder = 0
+        Text = '30'
+      end
+      object DRadius_Edit: TEdit
+        Left = 86
+        Top = 129
+        Width = 46
+        Height = 29
+        TabOrder = 1
+        Text = '10'
+      end
+      object Generate_Coupling_v1_Button: TButton
+        Left = 377
+        Top = 11
+        Width = 93
+        Height = 60
+        Caption = 'UPDATE'
+        TabOrder = 2
+        OnClick = Generate_Coupling_v1_ButtonClick
+      end
+      object Lines_No_Edit: TEdit
+        Left = 89
+        Top = 203
+        Width = 43
+        Height = 29
+        TabOrder = 3
+        Text = '5'
+      end
+      object Perc_Len_Edit: TEdit
+        Left = 89
+        Top = 233
+        Width = 43
+        Height = 29
+        TabOrder = 4
+        Text = '90'
+      end
+      object DX_Edit: TEdit
+        Left = 261
+        Top = 9
+        Width = 53
+        Height = 29
+        TabOrder = 5
+        Text = '0.2'
+      end
+      object DY_Edit: TEdit
+        Left = 320
+        Top = 9
+        Width = 51
+        Height = 29
+        TabOrder = 6
+        Text = '0.2'
+      end
+      object Disks_CheckBox: TCheckBox
+        Left = 3
+        Top = 57
+        Width = 294
+        Height = 33
+        Caption = 'Small non-conducting discs'
+        TabOrder = 7
+      end
+      object Lines_CheckBox: TCheckBox
+        Left = 3
+        Top = 173
+        Width = 80
+        Height = 27
+        Caption = 'Lines'
+        TabOrder = 8
+      end
+      object ARings_CheckBox: TCheckBox
+        Left = 171
+        Top = 96
+        Width = 167
+        Height = 23
+        Caption = 'Add rings around'
+        TabOrder = 9
+      end
+      object AR_Radius_Edit: TEdit
+        Left = 308
+        Top = 120
+        Width = 46
+        Height = 29
+        TabOrder = 10
+        Text = '30'
+      end
+      object AR_Perc_Edit: TEdit
+        Left = 308
+        Top = 155
+        Width = 46
+        Height = 29
+        TabOrder = 11
+        Text = '10'
+      end
+      object CDCB_CheckBox: TCheckBox
+        Left = 171
+        Top = 203
+        Width = 186
+        Height = 22
+        Caption = 'Central disk'
+        TabOrder = 12
+      end
+      object CD_R_Edit: TEdit
+        Left = 255
+        Top = 228
+        Width = 47
+        Height = 29
+        TabOrder = 13
+        Text = '30'
+      end
+      object Reduce_Button: TButton
+        Left = 308
+        Top = 231
+        Width = 78
+        Height = 26
+        Caption = 'Reduce'
+        TabOrder = 14
+        OnClick = Reduce_ButtonClick
+      end
+      object PL_Edit: TEdit
+        Left = 89
+        Top = 261
+        Width = 43
+        Height = 29
+        TabOrder = 15
+        Text = '90'
+      end
+      object Min_Z_D_Edit: TEdit
+        Left = 243
+        Top = 278
+        Width = 45
+        Height = 29
+        TabOrder = 16
+        Text = '0.15'
+      end
+      object Max_Z_D_Edit: TEdit
+        Left = 243
+        Top = 311
+        Width = 45
+        Height = 29
+        TabOrder = 17
+        Text = '0.25'
+      end
+      object Z_D_Grad_Button: TButton
+        Left = 294
+        Top = 281
+        Width = 108
+        Height = 30
+        Caption = 'Z axis D grad'
+        TabOrder = 18
+        OnClick = Z_D_Grad_ButtonClick
+      end
+      object mincp_Edit: TEdit
+        Left = 113
+        Top = 399
+        Width = 43
+        Height = 29
+        TabOrder = 19
+        Text = '0'
+      end
+      object maxcp_Edit: TEdit
+        Left = 113
+        Top = 434
+        Width = 43
+        Height = 29
+        TabOrder = 20
+        Text = '0.2'
+      end
+      object DCLN_Edit: TEdit
+        Left = 366
+        Top = 399
+        Width = 47
+        Height = 29
+        TabOrder = 21
+        Text = '10'
+      end
+      object DCLR_Edit: TEdit
+        Left = 366
+        Top = 434
+        Width = 47
+        Height = 29
+        TabOrder = 22
+        Text = '4'
+      end
+      object Set_Layers_Coupling_Button: TButton
+        Left = 419
+        Top = 401
+        Width = 93
+        Height = 60
+        Caption = 'UPDATE'
+        TabOrder = 23
+        OnClick = Set_Layers_Coupling_ButtonClick
+      end
+    end
+    object TabSheet6: TTabSheet
+      Caption = 'ECG signal'
+      ImageIndex = 6
+      object Clear_ECG_Button: TButton
+        Left = 191
+        Top = 3
+        Width = 78
+        Height = 29
+        Caption = 'Clear'
+        TabOrder = 0
+        OnClick = Clear_ECG_ButtonClick
+      end
+      object Record_ECG_CheckBox: TCheckBox
+        Left = 53
+        Top = 3
+        Width = 121
+        Height = 29
+        Caption = 'Record ECG'
+        TabOrder = 1
+      end
+      object ECG_Chart: TChart
+        Left = 17
+        Top = 54
+        Width = 411
+        Height = 210
+        Legend.Visible = False
+        Title.Text.Strings = (
+          'ECG')
+        BottomAxis.Grid.Visible = False
+        LeftAxis.Grid.Visible = False
+        View3D = False
+        View3DOptions.FontZoom = 150
+        Color = clWhite
+        TabOrder = 2
+        DefaultCanvas = 'TGDIPlusCanvas'
+        ColorPaletteIndex = 13
+        object Series36: TLineSeries
+          HoverElement = [heCurrent]
+          SeriesColor = clBlack
+          Brush.BackColor = clDefault
+          Pointer.Brush.Gradient.EndColor = clBlack
+          Pointer.Gradient.EndColor = clBlack
+          Pointer.InflateMargins = True
+          Pointer.Style = psRectangle
+          XValues.Name = 'X'
+          XValues.Order = loAscending
+          YValues.Name = 'Y'
+          YValues.Order = loNone
+        end
+      end
+      object Export_Button: TButton
+        Left = 305
+        Top = 3
+        Width = 76
+        Height = 32
+        Caption = 'Export'
+        TabOrder = 3
+        OnClick = Export_ButtonClick
+      end
+    end
+    object TabSheet7: TTabSheet
+      Caption = 'Critical Reg Protocol'
+      ImageIndex = 7
+      object Label45: TLabel
+        Left = 57
+        Top = 83
+        Width = 274
+        Height = 21
+        Caption = 'Depth level (2: r=50%,3: r=33%,...)'
+      end
+      object Label46: TLabel
+        Left = 17
+        Top = 123
+        Width = 319
+        Height = 21
+        Caption = 'Number of CRs (1: just one is searched,...)'
+      end
+      object Label47: TLabel
+        Left = 17
+        Top = 156
+        Width = 5
+        Height = 21
+      end
+      object Label48: TLabel
+        Left = 27
+        Top = 177
+        Width = 310
+        Height = 21
+        Caption = 'Tested regions overlap during search [%]'
+      end
+      object Label49: TLabel
+        Left = -12
+        Top = 249
+        Width = 350
+        Height = 21
+        Caption = 'Simulation time to test for AF termination [ms]'
+      end
+      object CR_Progress_Label: TLabel
+        Left = 428
+        Top = 74
+        Width = 91
+        Height = 21
+        Caption = 'Iteration...'
+        Font.Charset = DEFAULT_CHARSET
+        Font.Color = clWindowText
+        Font.Height = -17
+        Font.Name = 'Tahoma'
+        Font.Style = [fsBold]
+        ParentFont = False
+      end
+      object Label50: TLabel
+        Left = 105
+        Top = 41
+        Width = 228
+        Height = 21
+        Caption = 'Number of tests per single CR:'
+      end
+      object CR_Level_ComboBox: TComboBox
+        Left = 336
+        Top = 80
+        Width = 66
+        Height = 29
+        Style = csDropDownList
+        ItemIndex = 0
+        TabOrder = 0
+        Text = '2'
+        OnChange = CR_Level_ComboBoxChange
+        Items.Strings = (
+          '2'
+          '3'
+          '4')
+      end
+      object CR_Number_ComboBox: TComboBox
+        Left = 336
+        Top = 120
+        Width = 66
+        Height = 29
+        Style = csDropDownList
+        ItemIndex = 1
+        TabOrder = 1
+        Text = '2'
+        OnChange = CR_Number_ComboBoxChange
+        Items.Strings = (
+          '1'
+          '2'
+          '3'
+          '4')
+      end
+      object Diff_Sizes_CR_Search_CheckBox: TCheckBox
+        Left = 57
+        Top = 212
+        Width = 335
+        Height = 31
+        Caption = 'Search for CRs of different sizes?'
+        TabOrder = 2
+        OnClick = Diff_Sizes_CR_Search_CheckBoxClick
+      end
+      object Begin_CR_Protocol_Button: TButton
+        Left = 428
+        Top = 140
+        Width = 138
+        Height = 135
+        Caption = 'BEGIN'
+        TabOrder = 3
+        OnClick = Begin_CR_Protocol_ButtonClick
+      end
+      object CR_Regions_Overlap_ComboBox: TComboBox
+        Left = 336
+        Top = 170
+        Width = 66
+        Height = 29
+        Style = csDropDownList
+        ItemIndex = 5
+        TabOrder = 4
+        Text = '50'
+        OnChange = CR_Regions_Overlap_ComboBoxChange
+        Items.Strings = (
+          '0'
+          '10'
+          '20'
+          '30'
+          '40'
+          '50'
+          '60'
+          '70'
+          '80'
+          '90')
+      end
+      object CRs_ListBox: TListBox
+        Left = 17
+        Top = 312
+        Width = 148
+        Height = 215
+        ItemHeight = 21
+        TabOrder = 5
+        OnClick = CRs_ListBoxClick
+      end
+      object CR_Test_Time_Edit: TEdit
+        Left = 336
+        Top = 249
+        Width = 63
+        Height = 29
+        TabOrder = 6
+        Text = '500'
+        OnChange = CR_Test_Time_EditChange
+      end
+      object TSTN_Edit: TEdit
+        Left = 336
+        Top = 38
+        Width = 63
+        Height = 29
+        TabOrder = 7
+        Text = '3'
+        OnChange = CR_Test_Time_EditChange
+      end
+      object Test_CR_Button1: TButton
+        Left = 171
+        Top = 312
+        Width = 78
+        Height = 51
+        Caption = 'Test CR'
+        TabOrder = 8
+        OnClick = Test_CR_Button1Click
+      end
+      object Stop2_Button: TButton
+        Left = 171
+        Top = 369
+        Width = 78
+        Height = 35
+        Caption = 'STOP'
+        TabOrder = 9
+        OnClick = Stop_Sim_ButtonClick
+      end
+    end
+  end
+  object Data_FileListBox: TFileListBox
+    Left = 48
+    Top = 650
+    Width = 149
+    Height = 99
+    ItemHeight = 21
+    TabOrder = 1
+    Visible = False
+  end
+  object Panel_1: TPanel
+    Left = 12
+    Top = 44
+    Width = 302
+    Height = 246
+    Margins.Left = 5
+    Margins.Top = 5
+    Margins.Right = 5
+    Margins.Bottom = 5
+    TabOrder = 2
+    OnMouseDown = Panel_1MouseDown
+    OnMouseMove = Panel_1MouseMove
+    OnMouseUp = Panel_1MouseUp
+  end
+  object MainMenu1: TMainMenu
+    Left = 136
+    Top = 200
+    object File1: TMenuItem
+      Caption = 'File'
+      object LoadData1: TMenuItem
+        Caption = 'Load Data'
+        OnClick = LoadData1Click
+      end
+      object SaveData1: TMenuItem
+        Caption = 'Save Data'
+        OnClick = SaveData1Click
+      end
+      object N4: TMenuItem
+        Caption = '-'
+      end
+      object ExportVoltageHistorytextfile1: TMenuItem
+        Caption = 'Export Voltage History (text file)'
+        OnClick = ExportVoltageHistorytextfile1Click
+      end
+      object N1: TMenuItem
+        Caption = '-'
+      end
+      object Exit1: TMenuItem
+        Caption = 'Exit'
+        OnClick = Exit1Click
+      end
+    end
+    object Debug1: TMenuItem
+      Caption = 'Debug'
+      object Displaymodulation1: TMenuItem
+        Caption = 'Display modulation'
+        OnClick = Displaymodulation1Click
+      end
+    end
+    object SIMULATIONTEMPLATES1: TMenuItem
+      Caption = 'SIMULATION TEMPLATES'
+      object Gettotalcrosscorelationpowerinfnofprobofablationcouplingv11: TMenuItem
+        Caption = 
+          'Get total crosscorelation power in f-n of prob of ablation (coup' +
+          'ling v1)'
+        OnClick = Gettotalcrosscorelationpowerinfnofprobofablationcouplingv11Click
+      end
+      object N2: TMenuItem
+        Caption = '-'
+      end
+      object CriticalRegions1: TMenuItem
+        Caption = 'Critical Regions'
+        object GeneratesetofstudieswihtstableAF1: TMenuItem
+          Caption = '1. Generate a set of studies with stable AF'
+          OnClick = GeneratesetofstudieswihtstableAF1Click
+        end
+        object ProcessfolderandcomputeCRs1: TMenuItem
+          Caption = '2. Process folder and compute CRs'
+          OnClick = ProcessfolderandcomputeCRs1Click
+        end
+        object N3Computeunipolarelectrograms1: TMenuItem
+          Caption = '3. Compute electrograms'
+          OnClick = N3Computeunipolarelectrograms1Click
+        end
+        object N4Computeelectrogramparameters1: TMenuItem
+          Caption = '4. Compute electrogram parameters'
+          OnClick = N4Computeelectrogramparameters1Click
+        end
+      end
+    end
+    object Signalprocessing1: TMenuItem
+      Caption = 'Signal processing'
+      object ComputeMPC1: TMenuItem
+        Caption = 'Compute MPC'
+        OnClick = ComputeMPC1Click
+      end
+      object ComputeElectrogramParameters1: TMenuItem
+        Caption = 'Compute mean cycle length'
+        OnClick = ComputeElectrogramParameters1Click
+      end
+      object ComputeSDofcyclelength1: TMenuItem
+        Caption = 'Compute SD of cycle length'
+        OnClick = ComputeSDofcyclelength1Click
+      end
+      object Computecausalitymap1: TMenuItem
+        Caption = 
+          'Compute point2point causality map (with respect to last pointed ' +
+          'point)'
+        OnClick = Computecausalitymap1Click
+      end
+      object Computeglobalcausalitymaplongcomputations1: TMenuItem
+        Caption = 'Compute global causality map (long computations)'
+        OnClick = Computeglobalcausalitymaplongcomputations1Click
+      end
+    end
+    object Options1: TMenuItem
+      Caption = 'Options'
+      object Options2: TMenuItem
+        Caption = 'Options'
+        OnClick = Options2Click
+      end
+    end
+    object Debug2: TMenuItem
+      Caption = 'Debug'
+      object Causalitytest1: TMenuItem
+        Caption = 'Causality test'
+        OnClick = Causalitytest1Click
+      end
+    end
+    object VIRTUALABLATIONS1: TMenuItem
+      Caption = 'VIRTUAL ABLATIONS'
+      object AblateaccordingtoCL1: TMenuItem
+        Caption = 'Ablate fastest regions (CL based)'
+        OnClick = AblateaccordingtoCL1Click
+      end
+    end
+    object Anandextension1: TMenuItem
+      Caption = 'Anand extension'
+      object Generatesimulationfile1: TMenuItem
+        Caption = 'Generate simulation file (from current time point)'
+        OnClick = Generatesimulationfile1Click
+      end
+      object GeneratesimulationfilePLANARWAVES1: TMenuItem
+        Caption = 'Generate simulation file (PLANAR WAVES)'
+        OnClick = GeneratesimulationfilePLANARWAVES1Click
+      end
+    end
+    object Help1: TMenuItem
+      Caption = 'Help'
+      object Debug3: TMenuItem
+        Caption = 'About'
+      end
+      object N5: TMenuItem
+        Caption = '-'
+      end
+      object Debug11: TMenuItem
+        Caption = 'Debug1'
+        OnClick = Debug11Click
+      end
+    end
+  end
+  object EP_Mapping_3D_Window_PopupMenu: TPopupMenu
+    Left = 96
+    Top = 328
+    object Poiningmode1: TMenuItem
+      Tag = 1
+      Caption = 'Poining mode'
+      OnClick = Poiningmode1Click
+    end
+    object Rotate2: TMenuItem
+      Tag = 2
+      Caption = 'Rotate'
+      Checked = True
+      OnClick = Rotate2Click
+    end
+    object Zoom2: TMenuItem
+      Tag = 3
+      Caption = 'Zoom'
+      OnClick = Zoom2Click
+    end
+    object Pan2: TMenuItem
+      Tag = 4
+      Caption = 'Pan'
+      OnClick = Pan2Click
+    end
+    object N3: TMenuItem
+      Caption = '-'
+    end
+    object Pushas1stsignal1: TMenuItem
+      Caption = 'Push as 1st signal'
+      OnClick = Pushas1stsignal1Click
+    end
+    object Pushas2ndsignal1: TMenuItem
+      Caption = 'Push as 2nd signal'
+      OnClick = Pushas2ndsignal1Click
+    end
+  end
+  object SaveDialog1: TSaveDialog
+    Left = 112
+    Top = 616
+  end
+  object OpenDialog1: TOpenDialog
+    Left = 192
+    Top = 480
+  end
+  object PopupMenu_mpc_vs_dist: TPopupMenu
+    Left = 248
+    Top = 880
+    object SaveXYpointstocsvfile1: TMenuItem
+      Caption = 'Save XY points to csv file'
+      OnClick = SaveXYpointstocsvfile1Click
+    end
+  end
+end

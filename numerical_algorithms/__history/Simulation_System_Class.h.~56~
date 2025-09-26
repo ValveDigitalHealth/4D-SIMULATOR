@@ -1,0 +1,184 @@
+//---------------------------------------------------------------------------
+#include <vcl.h>
+
+#include "FHN_4D_system.h"
+#include "FHN_3D_system.h"
+#include "FHN_2D_system.h"
+
+#include "TP1A_2D_system.h"
+#include "TP1A_2L_system.h"
+#include "TP1A_3D_system.h"
+
+#include "FK3_2D_system.h"
+
+
+#include "Numerical_Library.h"
+
+#include "LR_91_2D_System.h"
+
+#ifndef Simulation_System_ClassH
+#define Simulation_System_ClassH
+//---------------------------------------------------------------------------
+
+class Simulation_System_Class
+{
+    public:
+
+    Simulation_System_Class();
+    ~Simulation_System_Class();
+
+    AnsiString Saved_Study_Filename;
+    int save_object(ofstream* dfile);
+    int load_object(ifstream* dfile);
+
+	void export_voltage_history(AnsiString Filename,AnsiString Signal_Type);
+    int Dimension_X,Dimension_Y,Dimension_Z,Dimension_T;
+
+	/** 2D SYSTEM **/
+    FHN_2D_system_class Two_Dim_System;
+//	TP1A_2D_system_class Two_Dim_System;
+//	LR_91_2D_system_class Two_Dim_System;
+//	FK3_2D_system_class Two_Dim_System;  // NOT FINISHD IMPLEMENTING (STILL PANF-TUSSH)
+
+	/** 2 LAYER SYSTEM **/
+	TP1A_2L_system_class Two_L_System;
+
+	/** 3D SYSTEM **/
+	TP1A_3D_system_class Three_Dim_System;
+//	FHN_3D_system_class Three_Dim_System;
+
+	/** 4D SYSTEM **/
+//	FHN_4D_system_class Four_Dim_System;
+
+	int Boundary_Conditions;
+	double Signal_Sampling_Timestep;
+	int Which_System_Dimension;
+
+	void compute_min_max_custom_value();
+	double get_custom_value(double Cx, double Cy);
+
+	double get_current_time();
+
+	void compute_N_steps(int N);
+
+	double get_variable(int Var_No,int X,int Y,int Z,int T);
+
+	void stimulate_node(int X,int Y,int Z,int T);
+	void stimulate_edge(int Which);
+
+	void clear_system();
+	void refresh_VW_matrices();
+
+	void set_timestep(double Timestep);
+
+	void create_spiral(int Slice_Plane); // 0-x,1-y,2-z,3-t
+
+    Numerical_Library Numerical_Library_Obj;
+
+	int get_color_code(int Source, int X,int Y,int Z,int T,long Time, int Grid_Spacing,double Cycle_Length_ms);
+	VelocityVector_2D get_conduction_arrow(int X,int Y,int Z,long Time);
+
+	double get_unipolar_voltage(int x_coord, int y_coord);
+	void record_potentials(int Type,int Grid_Spacing);
+	void record_ECG();
+
+	//-----------------------------------------------------
+	std::vector<Electrogram> Grid_Electrograms;
+	//-----------------------------------------------------
+	double get_correlation_length(long Start_Ptr,long Stop_Ptr, long BCL_Ptr,
+		double* CL, double* MPC,std::vector<double> *MPCs,std::vector<double> *Distances);
+	void clear_grid_egms();
+	void add_grid_egm(Electrogram *E);
+
+
+	long get_voltage_history_size();
+	void compute_ISIs_XY(int X, int Y);
+	long get_ISIs_history_size();
+	double get_ISI(long Index);
+	void clear_ECG_history();
+
+	void stimulate_system(double Cx, double Cy, double Cz);
+	void ablate_system(double Cx, double Cy, double Cz,int Direction);
+	void ablate_system_xy_point(int X,int Y,int Direction);
+
+	double Min_Voltage,Max_Voltage;
+	void set_initial_coupling();
+
+	//------------------------------------------------
+	// CRITICAL REGIONS SUPPORT
+	//------------------------------------------------
+	int CR_Level, CR_Number, CR_Regions_Overlap,CR_Tests_Number;
+	bool Diff_Sizes_CR_Search;
+	long CR_Test_Time;
+	bool activity_present_check();
+	void add_non_conducting_disk(int Layer,int X,int Y,int R);
+
+	// list of found CRs
+	bool Critical_Region_Search_Mode; // flag used to alter few things
+	vector <TP1A_2L_system_CR_region_class> TP1A_2L_system_CR_regions;
+	vector <Two_D_system_CR_region_class> TP1A_2D_system_CR_regions;
+
+	void add_mi1_mi2_R_disk(double mi1,double mi2,double R, int Target_Variable);
+
+	vector <double> calculate_unipolar_voltage_from_surface(int Node_x,long Node_y, long Range);
+
+	long get_history_vector_size();
+	long get_voltage_history_vector_size(int X,int Y);
+
+	void phase_vs_distance_data(long Time_Ptr, long BCL_Ptr,
+		std::vector<double> *Angles,std::vector<double> *Distances, int Algorithm);
+
+	double MPCs[TWO_DIM_SYSTEM_X_SIZE][TWO_DIM_SYSTEM_Y_SIZE];
+	double calculate_mpc_map();
+
+	//------------------------------------------------
+	// laminar domains analsis support
+	//------------------------------------------------
+	std::vector <domain_structure> Domains;
+	domain_structure perform_domain_walk(int ci,int cj,long ct, double Direction_Tolerance_Degrees, int Grid_Spacing);
+	void calculate_laminar_events(double Direction_Tolerance_Degrees, int Grid_Spacing);
+	long get_max_activation_time_id();
+	long get_domain_id(int X,int Y,int Z,long Time_Ptr);
+    long get_domain_ptr(int X,int Y,int Z,long Time_Ptr);
+
+
+	void set_mi_distribution(double mi1_left,double mi2_left,
+							 double mi1_right,double mi2_right,
+							 double Ratio);
+
+	long Line_point_A_i,Line_point_A_j;
+	long Line_point_B_i,Line_point_B_j;
+	void mark_line_point(int i, int j);
+
+	void recalculate_phase(double BCL_ptr,double Signal_Sampling_ms);
+	double get_phase(int X,int Y,long Time_Ptr);
+
+	void get_system_size(int* X,int* Y,int* Z,int* T);
+
+
+	vector_of_floats VOLTAGE_HISTORY[TWO_DIM_SYSTEM_X_SIZE][TWO_DIM_SYSTEM_Y_SIZE];
+	vector<double> VOLTAGE_HISTORY_Time_Axis_ms;
+	void get_voltage(int x_coord, int y_coord,long t_ptr,double *Voltage,double *Time);
+	void clear_signals_history();
+
+	double get_voltage(int X, int Y);
+	double get_current(int X, int Y);
+
+	// here is stored vector field for the simulation (dynamically calculated, no need to save it)
+	vector_of_doubles PHASE[TWO_DIM_SYSTEM_X_SIZE][TWO_DIM_SYSTEM_Y_SIZE];
+	vector_of_longs ACTIVATION_TIMINGS[TWO_DIM_SYSTEM_X_SIZE][TWO_DIM_SYSTEM_Y_SIZE];
+	vector_of_longs ACTIVATION_TIMINGS_DOMAIN_ID[TWO_DIM_SYSTEM_X_SIZE][TWO_DIM_SYSTEM_Y_SIZE];
+	vector_of_floats VELOCITY_VECTORS_DIRECTION[TWO_DIM_SYSTEM_X_SIZE][TWO_DIM_SYSTEM_Y_SIZE];
+	vector_of_floats VELOCITY_VECTORS_AMPLITUDE[TWO_DIM_SYSTEM_X_SIZE][TWO_DIM_SYSTEM_Y_SIZE];
+	void calculate_velocity_field(double Cycle_Length_ms, double Signal_Sampling_Timestep, int Grid_Spacing);
+	long get_closest_timing(int x,int y,long t);
+
+
+	// Correlation length support
+	std::vector<double> Corrs;
+
+};
+
+
+#endif
+

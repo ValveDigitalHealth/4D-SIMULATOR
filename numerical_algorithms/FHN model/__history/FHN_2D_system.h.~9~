@@ -1,0 +1,89 @@
+//---------------------------------------------------------------------------
+#include "Program_Constants.h"
+
+#include "Numerical_Library.h"
+
+#ifndef FHN_2D_systemH
+#define FHN_2D_systemH
+//---------------------------------------------------------------------------
+
+#include <vector>
+
+using namespace std;
+
+
+class FHN_2D_system_class
+{
+    public:
+
+    FHN_2D_system_class();
+	~FHN_2D_system_class();
+
+    int save_object(ofstream* dfile);
+    int load_object(ifstream* dfile);
+
+    // data structures
+    int Size_X;
+    int Size_Y;
+
+	double V1[TWO_DIM_SYSTEM_X_SIZE][TWO_DIM_SYSTEM_Y_SIZE];
+	double V2[TWO_DIM_SYSTEM_X_SIZE][TWO_DIM_SYSTEM_Y_SIZE];
+
+	double W1[TWO_DIM_SYSTEM_X_SIZE][TWO_DIM_SYSTEM_Y_SIZE];
+	double W2[TWO_DIM_SYSTEM_X_SIZE][TWO_DIM_SYSTEM_Y_SIZE];
+
+	double DX[TWO_DIM_SYSTEM_X_SIZE][TWO_DIM_SYSTEM_Y_SIZE];
+	double DY[TWO_DIM_SYSTEM_X_SIZE][TWO_DIM_SYSTEM_Y_SIZE];
+
+	double CUSTOM_VALUE[TWO_DIM_SYSTEM_X_SIZE][TWO_DIM_SYSTEM_Y_SIZE];
+	double CUSTOM_VALUE_2[TWO_DIM_SYSTEM_X_SIZE][TWO_DIM_SYSTEM_Y_SIZE];
+
+	double Min_Custom_Value,Max_Custom_Value;
+	void compute_min_max_custom_value();
+	double get_custom_value(double Cx, double Cy);
+
+    vector <vector_of_doubles> Middle_Row_Voltage_History;
+    void record_potentials();
+    void compute_ISIs(long Node_Position);
+    vector<long>ISIs;
+    long ISIs_Node_Ptr_X;
+
+	double Min_Diff,Max_Diff_X,Max_Diff_Y;
+
+    double Min_Voltage,Max_Voltage;
+
+    int Boundary_Conditions;
+
+    void clear_system();
+
+    void create_spiral(int Slice_Plane); // 0-x,1-y,2-z,3-t
+
+    double* FHN_Activation_Variable_APD;
+    double* FHN_Recovery_Variable_APD;
+    int FHN_APD_Length;
+
+    // parameters
+    double ni,gamma,beta;
+    double dx,dt;
+
+    double Global_Time;
+
+    void calculate_V1_from_V2_fhn();
+    void calculate_V2_from_V1_fhn();
+
+    int allocate_tables();
+
+    void compute_N_steps(int N);
+
+    int get_color_code(int X,int Y);
+
+	void stimulate_node(int X,int Y);
+
+	double get_MI_parameter(int Which,int X, int Y);
+
+	void ablate_system(double Cx, double Cy,int Direction);
+	void ablate_system_xy_point(int X,int Y,int Direction);
+
+};
+
+#endif

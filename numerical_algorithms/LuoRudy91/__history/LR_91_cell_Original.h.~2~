@@ -1,0 +1,107 @@
+// The Luo-Rudy Dynamic (LRd) Model of the Mammalian Ventricular Myocyte
+// https://models.cellml.org/exposure/2d2ce7737b42a4f72d6bf8b67f6eb5a2
+#ifndef LRCELL91_original_H
+#define LRCELL91_original_H
+
+#include <vector>
+#include <iostream>
+#include <math.h>
+#include <fstream>
+#include <stdlib.h>
+#include <stdio.h>
+#define bcl 300   // Basic Cycle Length (ms)
+#define beats 10  // Number of Beats
+
+using namespace std;
+
+class Luo_Rudy_91_cell_original
+{
+	public:
+
+	Luo_Rudy_91_cell_original();
+
+	int save_object(ofstream* dfile);
+	int load_object(ifstream* dfile);
+
+//	double ALGEBRAIC[25],RATES[8],STATES[8],CONSTANTS[24];
+	double t;
+	double dt;
+	double v, vnew, vprev_1, vprev_2;
+	double dv;
+	double V_Tip_Timer_ms_ago;
+
+/*
+   There are a total of 25 entries in the algebraic variable array.
+   There are a total of 8 entries in each of the rate and state variable arrays.
+   There are a total of 24 entries in the constant variable array.
+ */
+/*
+ * VOI is time in component environment (millisecond).
+ * beta_m is beta_m in component fast_sodium_current_m_gate (per_millisecond).
+ * alpha_h is alpha_h in component fast_sodium_current_h_gate (per_millisecond).
+ * beta_h is beta_h in component fast_sodium_current_h_gate (per_millisecond).
+ * alpha_j is alpha_j in component fast_sodium_current_j_gate (per_millisecond).
+ * beta_j is beta_j in component fast_sodium_current_j_gate (per_millisecond).
+ * E_si is E_si in component slow_inward_current (millivolt).
+ * Cai is Cai in component intracellular_calcium_concentration (millimolar).
+ * d is d in component slow_inward_current_d_gate (dimensionless).
+ * f is f in component slow_inward_current_f_gate (dimensionless).
+ * alpha_d is alpha_d in component slow_inward_current_d_gate (per_millisecond).
+ * beta_d is beta_d in component slow_inward_current_d_gate (per_millisecond).
+ * alpha_f is alpha_f in component slow_inward_current_f_gate (per_millisecond).
+ * beta_f is beta_f in component slow_inward_current_f_gate (per_millisecond).
+ * g_K is g_K in component time_dependent_potassium_current (milliS_per_cm2).
+ * E_K is E_K in component time_dependent_potassium_current (millivolt).
+ * PR_NaK is PR_NaK in component time_dependent_potassium_current (dimensionless).
+ * Ko is Ko in component ionic_concentrations (millimolar).
+ * Ki is Ki in component ionic_concentrations (millimolar).
+ * X is X in component time_dependent_potassium_current_X_gate (dimensionless).
+ * Xi is Xi in component time_dependent_potassium_current_Xi_gate (dimensionless).
+ * alpha_X is alpha_X in component time_dependent_potassium_current_X_gate (per_millisecond).
+ * beta_X is beta_X in component time_dependent_potassium_current_X_gate (per_millisecond).
+ * E_K1 is E_K1 in component time_independent_potassium_current (millivolt).
+ * g_K1 is g_K1 in component time_independent_potassium_current (milliS_per_cm2).
+ * K1_infinity is K1_infinity in component time_independent_potassium_current_K1_gate (dimensionless).
+ * alpha_K1 is alpha_K1 in component time_independent_potassium_current_K1_gate (per_millisecond).
+ * beta_K1 is beta_K1 in component time_independent_potassium_current_K1_gate (per_millisecond).
+ * E_Kp is E_Kp in component plateau_potassium_current (millivolt).
+ * g_Kp is g_Kp in component plateau_potassium_current (milliS_per_cm2).
+ * Kp is Kp in component plateau_potassium_current (dimensionless).
+ * E_b is E_b in component background_current (millivolt).
+ * g_b is g_b in component background_current (milliS_per_cm2).
+ * dv is d/dt V in component membrane (millivolt).
+ * dm is d/dt m in component fast_sodium_current_m_gate (dimensionless).
+ * dh is d/dt h in component fast_sodium_current_h_gate (dimensionless).
+ * dj is d/dt j in component fast_sodium_current_j_gate (dimensionless).
+ * dd is d/dt d in component slow_inward_current_d_gate (dimensionless).
+ * df is d/dt f in component slow_inward_current_f_gate (dimensionless).
+ * dX is d/dt X in component time_dependent_potassium_current_X_gate (dimensionless).
+ * dCai is d/dt Cai in component intracellular_calcium_concentration (millimolar).
+ */
+
+	void initialize_variables();
+
+	void computeVariables();
+	void computeRates();
+
+	void compute_one_step();
+
+	// Tip
+	double Timer;
+	double Tip_Function;
+	double Tip_Threshold;
+	int Tip_Was_Here;
+
+	// Diffusion term from surrounding cells
+	double Diffusion_Coefficient;
+	double Diffusion_Term;
+	double Istim;
+
+	// not used since history is handled now by grid approach on "tissue level"
+	std::vector <double> Voltage_History;
+	std::vector <double> Unipolar_Signal_History;
+
+};
+
+#endif
+

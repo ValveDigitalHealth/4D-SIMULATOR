@@ -1,0 +1,89 @@
+//---------------------------------------------------------------------------
+#include "Program_Constants.h"
+#include "Numerical_Library.h"
+
+#ifndef FHN_2D_systemH
+#define FHN_2D_systemH
+//---------------------------------------------------------------------------
+
+#include <vector>
+#include <fstream> // Required for ofstream and ifstream
+
+// Assuming TWO_DIM_SYSTEM_X_SIZE and TWO_DIM_SYSTEM_Y_SIZE are in Program_Constants.h
+// Assuming vector_of_doubles is in Numerical_Library.h
+
+using namespace std;
+
+
+class FHN_2D_system_class
+{
+public:
+
+    FHN_2D_system_class();
+    ~FHN_2D_system_class();
+
+    int save_object(ofstream* dfile);
+    int load_object(ifstream* dfile);
+
+    // Grid dimensions and data structures
+    int Size_X;
+    int Size_Y;
+
+    double V1[TWO_DIM_SYSTEM_X_SIZE][TWO_DIM_SYSTEM_Y_SIZE];
+    double V2[TWO_DIM_SYSTEM_X_SIZE][TWO_DIM_SYSTEM_Y_SIZE];
+
+    double W1[TWO_DIM_SYSTEM_X_SIZE][TWO_DIM_SYSTEM_Y_SIZE];
+    double W2[TWO_DIM_SYSTEM_X_SIZE][TWO_DIM_SYSTEM_Y_SIZE];
+
+    double DX[TWO_DIM_SYSTEM_X_SIZE][TWO_DIM_SYSTEM_Y_SIZE];
+    double DY[TWO_DIM_SYSTEM_X_SIZE][TWO_DIM_SYSTEM_Y_SIZE];
+
+    double CUSTOM_VALUE[TWO_DIM_SYSTEM_X_SIZE][TWO_DIM_SYSTEM_Y_SIZE];
+
+    // Data recording
+    vector <vector_of_doubles> Middle_Row_Voltage_History;
+    vector<double> ISIs; // Changed to double to store time units
+    long ISIs_Node_Ptr_X;
+    void record_potentials();
+    void compute_ISIs(long Node_Position);
+
+    // Model parameters and state
+    double Min_Diff, Max_Diff_X, Max_Diff_Y;
+    double Min_Voltage, Max_Voltage;
+    int Boundary_Conditions; // 0 for zero-flux, 1 for periodic
+    double ni, gamma, beta;
+    double dx, dt;
+    double Global_Time;
+
+    // Phase data for spiral creation
+    double* FHN_Activation_Variable_APD;
+    double* FHN_Recovery_Variable_APD;
+    int FHN_APD_Length;
+
+    // Core simulation and system manipulation methods
+    void compute_N_steps(int N);
+    void calculate_fhn_step(
+        double V_in[TWO_DIM_SYSTEM_X_SIZE][TWO_DIM_SYSTEM_Y_SIZE], double W_in[TWO_DIM_SYSTEM_X_SIZE][TWO_DIM_SYSTEM_Y_SIZE],
+        double V_out[TWO_DIM_SYSTEM_X_SIZE][TWO_DIM_SYSTEM_Y_SIZE], double W_out[TWO_DIM_SYSTEM_X_SIZE][TWO_DIM_SYSTEM_Y_SIZE]);
+    int allocate_tables();
+    void clear_system();
+    void create_spiral(int Slice_Plane);
+    int get_color_code(int X, int Y);
+    void stimulate_node(int X, int Y);
+    double get_MI_parameter(int Which, int X, int Y);
+    void ablate_system(double Cx, double Cy, int Direction);
+    void ablate_system_xy_point(int X, int Y, int Direction);
+    void set_initial_coupling();
+	bool activity_present_check();
+
+    double Min_Custom_Value,Max_Custom_Value;
+
+private:
+    // Private helper for the core calculation to avoid code duplication
+    void _compute_fhn_update(int i, int j,
+        double V_in[TWO_DIM_SYSTEM_X_SIZE][TWO_DIM_SYSTEM_Y_SIZE], double W_in[TWO_DIM_SYSTEM_X_SIZE][TWO_DIM_SYSTEM_Y_SIZE],
+        double V_out[TWO_DIM_SYSTEM_X_SIZE][TWO_DIM_SYSTEM_Y_SIZE], double W_out[TWO_DIM_SYSTEM_X_SIZE][TWO_DIM_SYSTEM_Y_SIZE],
+        int i_prev, int i_next, int j_prev, int j_next);
+};
+
+#endif

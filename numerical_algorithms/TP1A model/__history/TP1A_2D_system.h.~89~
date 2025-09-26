@@ -1,0 +1,127 @@
+//---------------------------------------------------------------------------
+
+#ifndef TP1A_2D_systemH
+#define TP1A_2D_systemH
+
+#include "Numerical_Library.h"
+
+#include "Program_Constants.h"
+
+#include "Electrogram_class.h"
+
+#include "Two_D_system_CR_region_class.h"
+
+
+//---------------------------------------------------------------------------
+
+/*
+  PHYSICAL REVIEW E 68, 062902 2003
+  Influence of nonexcitable cells on spiral breakup in two-dimensional and three-dimensional
+    excitable media
+    K. H. W. J. ten Tusscher1 and A. V. Panfilov1,2
+*/
+
+class TP1A_2D_system_class
+{
+    public:
+
+	TP1A_2D_system_class();
+	~TP1A_2D_system_class();
+
+	int save_object(ofstream* dfile);
+	int load_object(ifstream* dfile);
+
+	Numerical_Library Numerical_Library_Obj;
+
+	void set_timestep(double Timestep);
+
+	// data structures
+	int Size_X;
+	int Size_Y;
+
+	double V1[TWO_DIM_SYSTEM_X_SIZE][TWO_DIM_SYSTEM_Y_SIZE];
+	double V2[TWO_DIM_SYSTEM_X_SIZE][TWO_DIM_SYSTEM_Y_SIZE];
+
+	double W1[TWO_DIM_SYSTEM_X_SIZE][TWO_DIM_SYSTEM_Y_SIZE];
+	double W2[TWO_DIM_SYSTEM_X_SIZE][TWO_DIM_SYSTEM_Y_SIZE];
+
+	double DX[TWO_DIM_SYSTEM_X_SIZE][TWO_DIM_SYSTEM_Y_SIZE];
+	double DY[TWO_DIM_SYSTEM_X_SIZE][TWO_DIM_SYSTEM_Y_SIZE];
+
+	double MI1[TWO_DIM_SYSTEM_X_SIZE][TWO_DIM_SYSTEM_Y_SIZE];
+	double MI2[TWO_DIM_SYSTEM_X_SIZE][TWO_DIM_SYSTEM_Y_SIZE];
+
+	double CUSTOM_VALUE[TWO_DIM_SYSTEM_X_SIZE][TWO_DIM_SYSTEM_Y_SIZE];
+	double CUSTOM_VALUE_2[TWO_DIM_SYSTEM_X_SIZE][TWO_DIM_SYSTEM_Y_SIZE];
+	double Min_Custom_Value,Max_Custom_Value;
+	void compute_min_max_custom_value();
+	double get_custom_value(double Cx, double Cy);
+
+	double Min_Diff,Max_Diff_X,Max_Diff_Y;
+
+	double Min_Voltage,Max_Voltage;
+
+	int Boundary_Conditions;
+
+	void clear_system();
+
+	void refresh_VW_matrices(); // to avoid drop in efficiency
+
+	void create_spiral(int Slice_Plane); // 0-x,1-y,2-z,3-t
+
+	double* TP1A_Activation_Variable_APD;
+	double* TP1A_Recovery_Variable_APD;
+	int TP1A_APD_Length;
+
+	// parameters
+	double k_par,a,eps,mi1,mi2,b;
+
+	double dx,dt;
+
+	double Global_Time;
+
+	void calculate_V1_from_V2_fhn();
+	void calculate_V2_from_V1_fhn();
+
+	int allocate_tables();
+
+	void compute_N_steps(int N);
+
+	// ASSYMETRIC VOLTAGE MODULATION
+	void add_assymetric_modulation();
+	bool Add_Assymetric_Modulation;
+	double Asm_Length;
+	double Asm_Amplitude;
+	double Asm_Ratio;
+
+	// SINUSOIDAL CURRENT MODULATION
+	void add_current_modulation_1();
+	bool Add_Current_Modulation_1;
+	double CM1_Length;
+	double CM1_Amplitude;
+
+	double Central_Region_Relative_Size;
+
+
+	void set_mi_distribution(double mi1_left,double mi2_left,
+							 double mi1_right,double mi2_right,
+							 double Ratio);
+
+	void set_mi_breakup_rings(double mi1_min,double mi1_max,
+							 double Radius, long Number,bool Middle);
+
+	void set_mi_breakup_landscape(double R, double p, double I,
+				double min, double max, int Target_Variable);
+
+	vector <double> calculate_unipolar_voltage_from_surface(int Node_x,long Node_y, long Range);
+
+	// CRITICAL REGIONS SUPPORT
+	bool activity_present_check();
+
+	double get_MI_parameter(int Which,int X, int Y);
+
+	void stimulate_node(int X,int Y);
+
+};
+
+#endif
